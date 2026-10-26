@@ -311,7 +311,12 @@
       "greenhouse": false,
       "rtg": false,
       "relay": false,
-      "ice_confirmed": false
+      "ice_confirmed": false,
+      "inhabited_days": 0,
+      "biology_closed_months": 0,
+      "machine_tended_months": 0,
+      "organisms": {},
+      "life_archive_accessions": 0
     },
     "mars": {
       "population": 0,
@@ -354,7 +359,12 @@
       "greenhouse": false,
       "rtg": false,
       "relay": false,
-      "ice_confirmed": false
+      "ice_confirmed": false,
+      "inhabited_days": 0,
+      "biology_closed_months": 0,
+      "machine_tended_months": 0,
+      "organisms": {},
+      "life_archive_accessions": 0
     },
     "freespace": {
       "population": 0,
@@ -397,7 +407,12 @@
       "greenhouse": false,
       "rtg": false,
       "relay": false,
-      "ice_confirmed": false
+      "ice_confirmed": false,
+      "inhabited_days": 0,
+      "biology_closed_months": 0,
+      "machine_tended_months": 0,
+      "organisms": {},
+      "life_archive_accessions": 0
     }
   },
   "facilities": {
@@ -491,5 +506,31 @@
   "last_event": null,
   "flags": {
     "pressure_crew_mars": false
+  },
+  "footholds": {
+    "human": {
+      "achieved": false,
+      "announced": false,
+      "just_announced": false,
+      "reason": "foothold_500",
+      "site": null,
+      "progress": 0
+    },
+    "biology": {
+      "achieved": false,
+      "announced": false,
+      "just_announced": false,
+      "reason": "foothold_biology",
+      "site": null,
+      "progress": 0
+    },
+    "machine": {
+      "achieved": false,
+      "announced": false,
+      "just_announced": false,
+      "reason": "foothold_machine",
+      "site": null,
+      "progress": 0
+    }
   }
 }

@@ -151,6 +151,85 @@ def ember_checklist(state: dict[str, Any], site_name: str) -> dict[str, Any]:
     }
 
 
+def earth_alive_for_foothold(state: dict[str, Any]) -> bool:
+    """A foothold is a living branch of Earth, so Earth itself has to still be there."""
+    if float(state.get("earth_stability", 0)) <= 0:
+        return False
+    if state.get("biology", {}).get("uncontained"):
+        return False
+    collapsed = (
+        int(state.get("deficit_months", 0)) >= 12
+        and float(state.get("political_capital", 0)) <= 0
+        and float(state.get("public_opinion", 0)) <= 15
+    )
+    return not collapsed
+
+
+_PATHS = (
+    ("human", "foothold_500", "inhabited_days", "foothold_days"),
+    ("biology", "foothold_biology", "biology_closed_months", "foothold_biology_months"),
+    ("machine", "foothold_machine", "machine_tended_months", "foothold_machine_months"),
+)
+
+def foothold_progress(state: dict[str, Any]) -> list[dict[str, Any]]:
+    """Best site for each path. Mars wins a tie, because 500 days is a Mars stay."""
+    rows = []
+    block = state.get("footholds") or {}
+    for key, reason, field, target_key in _PATHS:
+        target = int(V("win", target_key))
+        best_site = "mars"
+        best_value = int(state["sites"]["mars"].get(field, 0))
+        for site_name in ("moon", "freespace"):
+            value = int(state["sites"][site_name].get(field, 0))
+            if value > best_value:
+                best_site = site_name
+                best_value = value
+        record = block.get(key) or {}
+        site_name = record["site"] if record.get("achieved") and record.get("site") else best_site
+        current = int(state["sites"][site_name].get(field, 0))
+        rows.append({
+            "path": key,
+            "reason": reason,
+            "site": site_name,
+            "progress": int(record.get("progress") or current),
+            "current": current,
+            "target": target,
+            "achieved": bool(record.get("achieved")),
+            "unit": "days" if key == "human" else "months",
+        })
+    return rows
+
+
+def consider_footholds(state: dict[str, Any]) -> list[dict[str, Any]]:
+    """Record each first-tier win once. Does not set state['outcome']."""
+    if not earth_alive_for_foothold(state):
+        return []
+    block = state.setdefault("footholds", {})
+    announced = []
+    for key, reason, field, target_key in _PATHS:
+        row = block.setdefault(key, {"achieved": False, "announced": False, "just_announced": False, "reason": reason, "site": None, "progress": 0})
+        if row.get("achieved"):
+            continue
+        target = float(V("win", target_key))
+        best: tuple[str, float] | None = None
+        for site_name in ("mars", "moon", "freespace"):
+            progress = float(state["sites"][site_name].get(field, 0))
+            if progress + 1e-9 >= target and (best is None or progress > best[1]):
+                best = (site_name, progress)
+        if best is None:
+            continue
+        row.update({
+            "achieved": True,
+            "announced": True,
+            "just_announced": True,
+            "reason": reason,
+            "site": best[0],
+            "progress": int(best[1]),
+        })
+        announced.append(dict(row))
+    return announced
+
+
 def any_ember(state: dict[str, Any]) -> dict[str, Any] | None:
     for site_name in ("moon", "mars", "freespace"):
         report = ember_checklist(state, site_name)
