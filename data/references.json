@@ -129,6 +129,11 @@
     "citation": "Sancho, L.G. et al. Lichens survive in space: results from the 2005 LICHENS experiment. Astrobiology 7(3), 443–454 (2007). doi:10.1089/ast.2006.0046. Exposure survival again, not growth of a biosphere. On Mars, UV, desiccation, and perchlorates still block open-air establishment.",
     "url": "https://doi.org/10.1089/ast.2006.0046"
   },
+  "cospar_planetary_protection": {
+    "short": "COSPAR planetary protection",
+    "citation": "COSPAR Policy on Planetary Protection. Mars missions are typically Category IV; missions that can reach special regions are more stringent. The policy limits forward contamination of other worlds. It does not describe how to release organisms, and this game does not either. The political cost of a sealed off-world culture is an estimate of that constraint.",
+    "url": "https://cosparhq.cnes.fr/scientific-structure/panels/panel-on-planetary-protection-ppp/"
+  },
   "game_calibration": {
     "short": "Game calibration marked as estimates",
     "citation": "Where a single published number does not exist (shielding transmission curve, farm lighting power, IMLEO campaign splits, dramatic solar-particle odds, ascent-propellant threshold), the value is an order-of-magnitude estimate anchored to the cited literature. Estimates are flagged estimate=true and must be spoken as estimates.",

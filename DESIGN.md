@@ -111,6 +111,44 @@ DRA 5.0 的锚：会合周期约 26 个月（779.94 天）；地火双向通信�
 
 同一结算先查火种。火种成立则赢，即使地球稳定度在同一次检查里已经是 0。
 
+## 立足 / Footholds
+
+火种之前有三种第一级胜利。每一种都要求宣布时地球还活着：稳定度 > 0，计划没有崩溃，也没有发生无约束释放。引擎把第一次达成写进 `footholds`，放进当回合的 `foothold_victories`，然后战役继续。第二次不再宣布。`state.outcome` 仍留给火种或游戏结束。
+
+地球文明「还活着」在这里是字面的：立足是地球生命的一条分支，地球自己先没了，这条分支就不算赢。火种才是地球可以死去之后仍然算赢的那一档。
+
+### 人 / Crew — `foothold_500`
+
+至少两人，在有栖息地的月球、火星或自由空间，连续活过 500 天。500 来自 DRA 5.0 的合式停留（约 500–540 天，一个算例是 539），游戏取 500，标成估计。账本一个月 30 天，所以 17 个月是 510 天。
+
+每个这样的月要同时成立：本地干食至少 25%（估计；火种要 90%），本地氧气至少 50%（估计，卡在已演示的约 47% 萨巴蒂尔回收之上），本地水至少盖住一半未回收废水（估计），库存只允许补上剩下的缺口。最坏情况功率至少等于需求（估计；火种要 1.2）。年剂量不超过 50 mSv，借用 ICRP 103 的单年管理上限，是估计，不是 NASA 飞行限值；火种仍是 20 mSv/年。当月有人死亡，或人数掉到 2 以下，时钟归零。
+
+只有库存、没有本地产出的月份不算。这不是野餐。
+
+### 生物 / Life — `foothold_biology`
+
+不必是人。蓝细菌、极端微生物、地衣、苔藓或作物，在那颗世界上至少成功培养两次（等级 ≥2），然后在封闭生态位里不靠地球补给延续 36 个月。
+
+36 个月是估计，也是设计压缩。有利条件下许多蓝细菌以小时到一天分裂，所以这是成千上万个微生物世代；苔藓更接近一个生长季，所以这是几个生长季。它表示「起始营养包用完以后种群还在」，也就是日后可以演化的前提。游戏不快进数亿年。缓步动物的暴露试验永远不算。Sancho 等人的地衣空间暴露、Jönsson 等人的缓步动物暴露，都只是活下来，不是定居。
+
+生态位必须是温室，或者覆土栖息地（额外屏蔽 ≥50 g/cm²，估计，针对紫外和干渴，不是人体剂量）。开放的火星地表不行：约 6 mbar、没有稳定液态水、有高氯酸盐、紫外线直接打下来。本地水至少 100 kg/年（估计，够一个小穹顶，不够一船人）。最坏情况功率至少 2 kWe（估计）。
+
+任何成功的地球抵达都会把这只时钟清零。封闭培养仍然是前向污染：COSPAR 行星保护把火星任务放在 Category IV 一类。游戏不写释放步骤，只扣一笔政治资本（估计），并降低协和的支持。
+
+### 机器照护的生命 / Machine-tended life — `foothold_machine`
+
+机器人可以先到。只有机器人，没有生命，不算赢。它们必须已经在照看一条活着的生物立足（同一套封闭、繁殖、水、功率条件），并且自己能留下来：至少 3 台机器人，关键备件至少一半本地制造（估计；火种要 0.8），最坏情况功率至少 5 kWe（估计，落在 Kilopower 的 1–10 kWe 这一级，不是说 KRUSTY 已经飞过），当地至少 1000 份微生物或种子档案（估计，远小于火种的一万名人类供体）。这样连续 24 个月没有地球抵达。24 个月长过游戏里的一次尘暴季。这是维修和照护，不是冯·诺依曼自复制。
+
+Before the ember there are three first-tier wins. Earth has to be alive when each is announced: stability above zero, the program not collapsed, no uncontained release. The engine records the first crossing, puts it on that turn's `foothold_victories`, and play continues. It does not announce twice. `state.outcome` stays free for the ember or a loss.
+
+A foothold is a living branch of Earth, so Earth itself has to still be standing. The ember is the win that remains valid after Earth dies.
+
+The crew path is 500 days for at least two people, the DRA 5.0 conjunction-class surface stay (about 500–540 days; the game takes 500 and marks it as an estimate). Local dry food at least 25%, local oxygen at least 50%, local water at least half of makeup, stores only for the remainder, worst-case power at parity with demand, and habitat dose at or below 50 mSv/year. A death resets the clock. A stockpile alone does not advance it.
+
+The life path is a reproducing Earth species — not a tardigrade exposure — inside a greenhouse or a buried habitat, with local water and power, for 36 months without an Earth landing. Thirty-six months is thousands of microbial generations or a few moss seasons. It is the precondition for later evolution, not geological time. Open Martian ground fails: about 6 mbar, no stable liquid water, perchlorate, unfiltered UV. A sealed culture still costs political capital, because COSPAR treats Mars as a planetary-protection problem. The game does not describe a release.
+
+The machine path is those same living conditions plus maintainers: at least three robots, half of critical spares made locally, at least 5 kWe through the worst case, and a 1,000-accession archive, for 24 unattended months. Robots with no life do not win. This is maintenance, not self-replicating industry.
+
 ## 8. 失败 / Losses
 
 致命：

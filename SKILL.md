@@ -57,8 +57,8 @@ python3 scripts/resolve_turn.py --user-id pilot --action '{"type":"facility","fa
 
 - `needs_confirmation: true`：时间没有走。用返回的 `zh` 或 `en`，加上 `risks`，说明这是鲁莽还是会直接结束。等玩家明确同意，再把同一个动作加上 `"confirm_reckless": true` 重发。没同意就停。
 - `ok: false` 且没有 `needs_confirmation`：说明 `error` 和 `class`。不可能的动作不消耗时间。不要自动改成另一个动作再偷偷执行。
-- `ok: true`：用 `event.zh` 或 `event.en`、成功或失败、以及 JSON 里的数字写一两段场景。然后原样贴 `summary_lines`。再用自然语言提供建议，不要贴原始 JSON。
-- `outcome` 非空：战役结束。按 `outcome_reason` 说明赢或输。不要再推进时间。
+- `ok: true`：用 `event.zh` 或 `event.en`、成功或失败、以及 JSON 里的数字写一两段场景。若有 `foothold_victories`，用其中的 `zh` 或 `en` 宣布立足，并说明战役还在继续。然后原样贴 `summary_lines`。再用自然语言提供建议，不要贴原始 JSON。
+- `outcome` 非空：战役结束。按 `outcome_reason` 说明赢或输。不要再推进时间。`foothold_victories` 不是终局；只有 `outcome` 才是。
 
 状态问询不花时间：
 
@@ -98,7 +98,7 @@ python3 scripts/action_schema.py
 
 任务剖面：`lunar_probe`，`lunar_isru_demo`，`lunar_cargo`，`lunar_crew_sortie`，`lunar_outpost`，`greenhouse`，`kilopower_unit`，`reactor_module`，`mars_relay`，`mars_robot`，`mars_cargo`，`mars_isru`，`mars_crew_conjunction`，`mars_outpost`，`industrial_plant`，`archive_cache`。
 
-生物：`cyanobacteria`，`extremophile_bacteria`，`lichen`，`moss`，`tardigrade`，`food_crop`。场地：`earth_lab`，`earth_simulant`，`earth_open`，`moon`，`mars`。模拟星壤要科技 `simulant_biology`。月面或火星要已有温室。缓步动物的暴露存活写入旗标，`established` 仍为假。`earth_open` 在确认后直接以生物安全结束，没有第二种结局。不要描写培养、释放或基因操作的步骤。事件里的破坏是「原型被烧、预算没了」，不要补成作案方法。
+生物：`cyanobacteria`，`extremophile_bacteria`，`lichen`，`moss`，`tardigrade`，`food_crop`。场地：`earth_lab`，`earth_simulant`，`earth_open`，`moon`，`mars`，`freespace`。模拟星壤要科技 `simulant_biology`。月面、火星和深空要有温室，或有覆土的栖息地。开放地表是不可能。缓步动物的暴露存活写入旗标，`established` 仍为假，也不推进生物立足。`earth_open` 在确认后直接以生物安全结束，没有第二种结局。地外的封闭培养会带回 `planetary_protection`：政治资本下降，这是前向污染的代价，不是释放步骤。不要描写培养、释放或基因操作。事件里的破坏是「原型被烧、预算没了」，不要补成作案方法。
 
 ## 顺序 / Order
 
@@ -110,9 +110,19 @@ python3 scripts/action_schema.py
 
 诚实顺序是：地球上的冷、热、真空、低氧和封闭生态 → 机器 → 月球 → 微生物和植物 → 人 → 火星窗口。窗口约每 779.94 天一次，错过就滑到下一扇。跳过月球乘员会加失败概率并记为鲁莽，不是绝对禁止：DRA 5.0 并不把月球基地写成物理前提。永久留在火星而之前没有一次往返，是鲁莽。
 
-纯机器定居不是胜利。一百个人本身不是物种备份。
+纯机器、没有生命，不是胜利。一百个人本身不是物种备份。缓步动物活过暴露也不是。
 
 ## 胜利与失败 / Win and loss
+
+立足是第一级胜利，火种是最终胜利。三种立足都会在第一次达成时放进 `foothold_victories`（`outcome` 为 `win`，`outcome_reason` 为 `foothold_500`、`foothold_biology` 或 `foothold_machine`），然后 `continues` 为真，`state.outcome` 仍为空。每种只宣布一次。地球稳定度 ≤0，或计划已经崩溃，或生物安全已经失败，则不宣布立足。
+
+三条路径都在 moon、mars、freespace 上计算。状态行各自一行。
+
+1. 人（`foothold_500`）：至少 2 人连续活过 500 天（约一次合式火星停留；账本按 30 天一个月，17 个月是 510 天）。每个月本地干食 ≥0.25、本地氧气 ≥0.5、本地水覆盖至少一半损耗，库存只能补缺口。最坏情况功率 ≥1.0。栖息地年剂量 ≤50 mSv（估计，ICRP 单年管理上限的类比，不是飞行限值）。有人死亡则清零。
+2. 生物（`foothold_biology`）：能繁殖的地球物种在该地培养等级 ≥2，待在温室或覆土栖息地（≥50 g/cm²，估计）里，本地水至少 100 kg/年，最坏情况功率至少 2 kWe，连续 36 个月没有地球飞船抵达。36 个月是设计上的「若干代 / 若干个生长季」，不是一亿年。开放地表不算。缓步动物不算。
+3. 机器（`foothold_machine`）：在生物立足的条件之上，至少 3 台机器人、关键备件本地比例 ≥0.5、最坏情况功率 ≥5 kWe、当地生命档案 ≥1000 份，连续 24 个月没有地球飞船抵达。没有活着的生物就不算。
+
+任何成功抵达该地的地球任务都会把生物时钟和机器时钟清零。人的 500 天时钟不清零，因为那条路径允许库存补上本地份额之外的缺口。
 
 火种（ember）必须在 moon、mars、freespace 之一同时满足十条，由 `ember_checklist` 判定，你不能宣布：
 
@@ -180,7 +190,8 @@ python3 scripts/generate_turn_tts.py --user-id pilot --text "这里只放你已�
 ## 不要 / Do not
 
 - 不要编造 Δv、剂量、质量、预算或人口。
-- 不要在引擎说赢之前说火种已经成立。
+- 不要在引擎给出 `foothold_victories` 之前宣布立足，也不要因此结束战役。
+- 不要在引擎说赢（`outcome` 为 win 且理由以 `ember:` 开头）之前说火种已经成立。
 - 不要把顾问的偏见写成规则。林桥偏模拟，奥孔克沃拒绝过早载人，瓦尔加盯剂量，佐藤芽盯 ISRU，伊克巴尔盯火箭方程，黑尔盯档案，哈提卜盯预算，沈寂盯系统。他们可以说话，骰子和清单不听他们的。
 - 不要把派系写成现实国家。守炉派、火种盟、协和、子午线局、闭天会、发射行会、乘员公会都是虚构的。
 - 不要在叙述里泄露秘密。

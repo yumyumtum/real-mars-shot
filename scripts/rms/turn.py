@@ -11,7 +11,7 @@ from rms.missions import PROFILES, apply_success, assign_crew, plan_mission, set
 from rms.physics import add_months, annual_imleo_t, people_export
 from rms.settlement import apply_month
 from rms.state import ready_crew
-from rms.win import any_ember
+from rms.win import any_ember, consider_footholds
 
 FACILITIES: dict[str, dict[str, Any]] = {
     "analog_habitat": {"cost": 0.35, "months": 6, "prereq_tech": []},
@@ -399,8 +399,17 @@ def _biology(state: dict[str, Any], action: dict[str, Any], *, force_roll: int |
         return {"mutated": True, "action": "biology", "site": site, "outcome_hint": "biosafety"}
     if site == "earth_simulant" and "simulant_biology" not in state["tech"]:
         return {"ok": False, "error": "missing tech", "missing": ["simulant_biology"], "mutated": False, "class": "impossible"}
-    if site in {"moon", "mars"} and not state["sites"][site]["greenhouse"]:
-        return {"ok": False, "error": "no greenhouse", "mutated": False, "class": "impossible"}
+    if site in {"moon", "mars", "freespace"} and not state["sites"][site]["greenhouse"] and not (
+        state["sites"][site]["habitat"] and float(state["sites"][site]["shielding_g_cm2"]) + 1e-9 >= V("win", "foothold_bio_shield_g_cm2")
+    ):
+        return {
+            "ok": False,
+            "error": "no sheltered niche",
+            "mutated": False,
+            "class": "impossible",
+            "zh": "开放的月面或火星地表留不住液态水和可生长的地球生物。先要温室，或有覆土的栖息地。",
+            "en": "Open regolith does not hold liquid water or a growing Earth organism. A greenhouse, or a buried habitat, has to come first.",
+        }
     if not _pay(state, 0.08):
         return {"ok": False, "error": "money", "mutated": False, "class": "impossible"}
     months = 3 if organism == "tardigrade" else 6
@@ -408,12 +417,14 @@ def _biology(state: dict[str, Any], action: dict[str, Any], *, force_roll: int |
     card = organisms()[organism]
     if organism == "tardigrade":
         state["biology"]["tardigrade_exposure"] = True
+        protection = _planetary_protection(state, site)
         return {
             "mutated": True,
             "action": "biology",
             "organism": organism,
             "established": False,
             "survival_is_not_habitation": True,
+            "planetary_protection": protection,
             "zh": "缓步动物在暴露试验里活了下来。这不计入建立，也不产生氧气或粮食。",
             "en": "The tardigrades survived the exposure test. That does not count as establishment, and it makes neither oxygen nor food.",
         }
@@ -421,8 +432,14 @@ def _biology(state: dict[str, Any], action: dict[str, Any], *, force_roll: int |
         state["biology"]["simulant_days"] += 90
     levels = state["biology"]["levels"]
     levels[organism] = min(5, int(levels.get(organism, 0)) + 1)
-    if site in {"moon", "mars"} and organism == "food_crop":
-        state["sites"][site]["farms_m2"] += 200
+    protection = None
+    if site in state["sites"] and not card.get("survival_only"):
+        slot = state["sites"][site].setdefault("organisms", {})
+        slot[organism] = min(5, int(slot.get(organism, 0)) + 1)
+        state["sites"][site]["life_archive_accessions"] = int(state["sites"][site].get("life_archive_accessions", 0)) + int(V("win", "foothold_culture_accessions"))
+        if organism == "food_crop":
+            state["sites"][site]["farms_m2"] += 200
+        protection = _planetary_protection(state, site)
     return {
         "mutated": True,
         "action": "biology",
@@ -430,8 +447,28 @@ def _biology(state: dict[str, Any], action: dict[str, Any], *, force_roll: int |
         "site": site,
         "established": bool(card.get("establishes_ecosystem")) and site in {"moon", "mars"} and levels[organism] >= 3,
         "survival_is_not_habitation": bool(card.get("survival_only", False)),
+        "planetary_protection": protection,
         "note_zh": card["note_zh"],
         "note_en": card["note_en"],
+    }
+
+
+def _planetary_protection(state: dict[str, Any], site: str) -> dict[str, Any] | None:
+    """Sealed Earth life on another world still costs a review. No release procedure."""
+    if site not in {"moon", "mars", "freespace"}:
+        return None
+    cost = float(V("win", "foothold_pp_political_cost"))
+    state["political_capital"] = max(0, state["political_capital"] - cost)
+    concord = state["factions"].setdefault("concord", {"support": 0, "hostility": 0})
+    concord["support"] = max(0, concord.get("support", 0) - cost)
+    hearth = state["factions"].setdefault("hearthbound", {"support": 0, "hostility": 0})
+    hearth["hostility"] = min(100, hearth.get("hostility", 0) + 2)
+    return {
+        "estimate": True,
+        "source_id": "cospar_planetary_protection",
+        "political_cost": cost,
+        "zh": "封闭舱里的地球生物仍然是前向污染。协和要一份行星保护审查，政治资本下降。这不是向开放地表撒播。",
+        "en": "Earth life in a sealed niche is still forward contamination. Concord wants a planetary-protection review, and political capital drops. This is not a release onto open ground.",
     }
 
 
@@ -526,6 +563,12 @@ def _mission(state: dict[str, Any], action: dict[str, Any], *, force_roll: int |
         if plan["destination"] in state["sites"] and state["sites"][plan["destination"]].get("trial"):
             state["sites"][plan["destination"]]["independent_months"] = 0
             facts["trial_reset"] = True
+        if plan["destination"] in state["sites"]:
+            landed = state["sites"][plan["destination"]]
+            if int(landed.get("biology_closed_months", 0)) or int(landed.get("machine_tended_months", 0)):
+                facts["closure_reset"] = True
+            landed["biology_closed_months"] = 0
+            landed["machine_tended_months"] = 0
     else:
         site_name = plan["destination"] if plan["destination"] in state["sites"] else None
         if site_name:
@@ -568,6 +611,7 @@ def _check_outcome(state: dict[str, Any], hint: str | None) -> None:
         return
     ember = any_ember(state)
     if ember:
+        consider_footholds(state)
         state["outcome"] = "win"
         state["outcome_reason"] = f"ember:{ember['site']}"
         state["outcome_site"] = ember["site"]
@@ -593,6 +637,7 @@ def _check_outcome(state: dict[str, Any], hint: str | None) -> None:
             state["outcome"] = "game_over"
             state["outcome_reason"] = f"offworld_extinction:{site_name}"
             return
+    consider_footholds(state)
 
 
 def _result(state: dict[str, Any], payload: dict[str, Any], *, mutated: bool) -> dict[str, Any]:

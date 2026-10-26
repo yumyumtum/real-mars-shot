@@ -46,6 +46,17 @@ def save_path(user_id: str) -> Path:
     return save_dir() / f"user-{safe_user_id(user_id)}.json"
 
 
+def _blank_foothold(reason: str) -> dict[str, Any]:
+    return {
+        "achieved": False,
+        "announced": False,
+        "just_announced": False,
+        "reason": reason,
+        "site": None,
+        "progress": 0,
+    }
+
+
 def blank_site() -> dict[str, Any]:
     return {
         "population": 0,
@@ -62,6 +73,11 @@ def blank_site() -> dict[str, Any]:
         "evacuated": False,
         "extinct": False,
         "fatalities": 0,
+        "inhabited_days": 0,
+        "biology_closed_months": 0,
+        "machine_tended_months": 0,
+        "organisms": {},
+        "life_archive_accessions": 0,
         "stores": {"food_kg": 0.0, "water_kg": 0.0, "o2_kg": 0.0},
         "farms_m2": 0.0,
         "solar_kwe_clear": 0.0,
@@ -143,6 +159,11 @@ def new_state(
         "outcome": None,
         "outcome_reason": None,
         "outcome_site": None,
+        "footholds": {
+            "human": _blank_foothold("foothold_500"),
+            "biology": _blank_foothold("foothold_biology"),
+            "machine": _blank_foothold("foothold_machine"),
+        },
         "treasury_busd": 1.5,
         "annual_budget_busd": 4.0 if hard else 6.0,
         "political_capital": 48 if hard else 55,

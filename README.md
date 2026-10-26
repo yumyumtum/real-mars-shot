@@ -33,15 +33,25 @@ Humans are fragile. Lower organisms travel more easily, and surviving an exposur
 
 ## 怎么赢，怎么输 / Win and loss
 
-赢：在月球、火星或自由空间留下一颗火种。十条要同时成立，包括连续五年的本地盈余（库存不算）、水回收至少 98% 且损耗由本地水覆盖、氧气与功率有裕度、九成以上干食本地生产、栖息地年剂量达标，以及要么约一万四千名居民，要么一百名居民、十次地外出生、再加一万名供体的种质档案。一百个人本身不是物种备份。纯机器文明不算赢。
+先有三种立足，每一种都在第一次达成时宣布一次，战役继续。宣布时地球必须还活着。最终的赢仍是火种。
 
-输：确认后在地球上无约束释放试验生物；地球稳定度归零；计划在长期赤字、政治资本和舆论同时崩掉时被取消；孤注一掷的载人失败把国库、政治和乘员一起打光，地外又没有机器人；或者试炼中的居民死去而地球已经救不回来。
+1. **人。** 至少两人在月球、火星或深空连续活过 500 天（大约一次合式火星停留）。本地干食至少四分之一，本地氧气至少一半，损耗的水至少一半来自当地。只靠库存不算。
+2. **生物。** 能繁殖的地球物种在温室或覆土生态位里、不靠地球补给，延续 36 个月。蓝细菌、地衣、苔藓、极端微生物、作物都可以。缓步动物挨过暴露不算。开放的火星地表不算：气压约 6 毫巴，没有稳定液态水。封闭培养仍要付一笔行星保护的政治代价。
+3. **机器照护的生命。** 机器人维持电力、备件、活着的生物和一份档案至少 24 个月。没有生命的机器不算。
+
+火种：十条同时成立。连续五年本地盈余（库存不算）、水回收至少 98% 且损耗由本地水覆盖、氧气与功率有裕度、九成以上干食本地生产、栖息地年剂量达标，以及要么约一万四千名居民，要么一百名居民、十次地外出生、再加一万名供体的种质档案。一百个人本身不是物种备份。火种成立以后，即使地球同时垮掉，也算赢。
+
+输：确认后在地球上无约束释放试验生物；地球稳定度归零；计划在长期赤字、政治资本和舆论同时崩掉时被取消；孤注一掷的载人失败把国库、政治和乘员一起打光，地外又没有机器人；或者试炼中的居民死去而地球已经救不回来。这些都会挡住尚未宣布的立足。
 
 单次发射失败、模拟舱撤离、预算削减、错过窗口、作物病害，都还能继续。模拟舱失败是一次教训，不是一座坟墓。
 
-Win by leaving an ember: five years of local surplus, 98% water recovery with local makeup, oxygen and power margin, mostly local food, a habitat dose on target, and either about 14,000 people or 100 residents, ten off-world births, and a 10,000-donor archive. A hundred people are not a species backup. A machine city is not a win.
+Three footholds are announced once each, and the campaign continues. Earth has to still be alive at the announcement. The ember is still the final win.
 
-Loss is an uncontained release on Earth, Earth-side collapse, a canceled program, an all-in crewed disaster with nothing left off-world, or a trial settlement dying while Earth cannot rescue it. A failed launch, an evacuated analog, a budget cut, a missed window, or a crop blight does not end the campaign.
+Crew: at least two people alive for 500 days, with a real local share of food, oxygen, and water. A stockpile alone does not count. Life: a reproducing Earth species persists 36 months in a greenhouse or buried niche with no Earth resupply. A tardigrade exposure does not count, and neither does the open Martian surface. Machines: robots keep power, spares, living organisms, and an archive going for 24 months. Machines with no life do not win.
+
+The ember is the ten-item seed: five years of local surplus, 98% water recovery, oxygen and power margin, mostly local food, a habitat dose on target, and either about 14,000 people or 100 residents, ten off-world births, and a 10,000-donor archive. A completed ember wins even if Earth fails in the same check.
+
+Loss is an uncontained release on Earth, Earth-side collapse, a canceled program, an all-in crewed disaster, or a trial settlement dying while Earth cannot rescue it. Those also block a foothold that has not yet been announced. A failed launch, an evacuated analog, a budget cut, a missed window, or a crop blight does not end the campaign.
 
 ## 🗺️ 路线图 / Roadmap
 
@@ -131,6 +141,9 @@ The first turn spends six months and 0.35 billion USD on the analog habitat, and
 可飞乘员：36　近地轨道运力约 234 吨/年
 下次火星窗口：2026-10
 若把未来十年全部近地轨道运力都拿去送人（化学推进、六人战役级），地球大约能送出 10 人（估计，约束来自质量与窗口）。
+立足·人 mars: 0/500 天
+立足·生物 mars: 0/36 月
+立足·机器 mars: 0/24 月
 火种清单（moon）：0/10
 ```
 

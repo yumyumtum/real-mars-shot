@@ -30,7 +30,7 @@ from rms.physics import (  # noqa: E402
     wastewater_kg_per_cm_d,
     window_center,
 )
-from rms.settlement import evaluate_month  # noqa: E402
+from rms.settlement import apply_month, evaluate_month  # noqa: E402
 from rms.state import load_game, new_state, public_view, save_game  # noqa: E402
 from rms.turn import resolve  # noqa: E402
 from rms.viz import habitat_svg, orbit_html, scene_card_svg  # noqa: E402
@@ -355,6 +355,10 @@ class FlowTest(unittest.TestCase):
         self.assertIn("analog_habitat", example["facilities"])
         self.assertIsNone(example["last_event"])
         self.assertIsNone(example["secrets"]["mole"])
+        self.assertFalse(example["footholds"]["human"]["achieved"])
+        self.assertEqual(example["sites"]["mars"]["inhabited_days"], state["sites"]["mars"]["inhabited_days"])
+        self.assertEqual(example["sites"]["mars"]["biology_closed_months"], 0)
+        self.assertEqual(example["sites"]["mars"]["machine_tended_months"], 0)
         report = ember_checklist(example, "moon")
         self.assertFalse(report["win"])
 
@@ -366,6 +370,161 @@ class FlowTest(unittest.TestCase):
         self.assertIn("fallback-canvas", html)
         self.assertIn("three.module.js", html)
         self.assertIn("habitat-section", habitat_svg())
+
+
+class FootholdTest(unittest.TestCase):
+    def _crew_site(self, state, name="mars"):
+        site = state["sites"][name]
+        site.update({
+            "population": 4,
+            "habitat": True,
+            "farms_m2": 60,
+            "fission_kwe": 50,
+            "shielding_g_cm2": 200,
+            "water_recovery": 0.98,
+            "electrolysis": True,
+            "isru_water_kg_year": 200,
+            "isru_o2_kg_year": 400,
+            "stores": {"food_kg": 5000.0, "water_kg": 0.0, "o2_kg": 5000.0},
+        })
+        return site
+
+    def _life_site(self, state, name="mars"):
+        site = state["sites"][name]
+        site.update({
+            "greenhouse": True,
+            "organisms": {"cyanobacteria": 2},
+            "isru_water_kg_year": 200,
+            "fission_kwe": 10,
+            "robots": 3,
+            "industrial_closure": 0.5,
+            "life_archive_accessions": 1000,
+        })
+        return site
+
+    def test_stockpile_and_one_person_do_not_count(self):
+        state = new_state(user_id="picnic", seed=1)
+        site = state["sites"]["mars"]
+        site.update({
+            "population": 4,
+            "habitat": True,
+            "fission_kwe": 50,
+            "shielding_g_cm2": 800,
+            "stores": {"food_kg": 100000.0, "water_kg": 100000.0, "o2_kg": 100000.0},
+        })
+        apply_month(state, "mars")
+        self.assertEqual(site["inhabited_days"], 0)
+        self.assertEqual(site["stores"]["food_kg"], 100000.0)
+        self._crew_site(state)
+        site["population"] = 1
+        apply_month(state, "mars")
+        self.assertEqual(site["inhabited_days"], 0)
+
+    def test_open_surface_and_tardigrades_are_not_a_biosphere(self):
+        state = new_state(user_id="open", seed=2)
+        site = state["sites"]["mars"]
+        site.update({
+            "organisms": {"cyanobacteria": 3},
+            "isru_water_kg_year": 500,
+            "fission_kwe": 10,
+        })
+        apply_month(state, "mars")
+        self.assertEqual(site["biology_closed_months"], 0)
+        self.assertIn("open_surface", site and apply_month(state, "mars")["biology_foothold"]["reasons"])
+        blocked = resolve(state, {"type": "biology", "organism": "moss", "site": "mars"}, force_event="none")
+        self.assertEqual(blocked["error"], "no sheltered niche")
+        site["organisms"] = {}
+        site["greenhouse"] = True
+        exposed = resolve(state, {"type": "biology", "organism": "tardigrade", "site": "mars"}, force_event="none")
+        self.assertTrue(exposed["survival_is_not_habitation"])
+        self.assertNotIn("tardigrade", site["organisms"])
+        self.assertEqual(site["biology_closed_months"], 0)
+        self.assertIsNotNone(exposed["planetary_protection"])
+
+    def test_machines_without_life_do_not_win(self):
+        state = new_state(user_id="bots", seed=3)
+        mars = state["sites"]["mars"]
+        mars.update({
+            "robots": 6,
+            "industrial_closure": 0.9,
+            "fission_kwe": 20,
+            "life_archive_accessions": 5000,
+            "greenhouse": True,
+            "isru_water_kg_year": 500,
+        })
+        report = apply_month(state, "mars")
+        self.assertEqual(mars["machine_tended_months"], 0)
+        self.assertIn("not_reproducing", report["machine_foothold"]["reasons"])
+
+    def test_life_and_machine_paths_announce_once_and_play_continues(self):
+        state = new_state(user_id="life", seed=4)
+        self._life_site(state)
+        first = resolve(state, {"type": "wait", "months": 36}, force_event="none")
+        reasons = {item["outcome_reason"] for item in first["foothold_victories"]}
+        self.assertEqual(reasons, {"foothold_biology", "foothold_machine"})
+        self.assertTrue(all(item["continues"] for item in first["foothold_victories"]))
+        self.assertIsNone(state["outcome"])
+        self.assertGreaterEqual(state["sites"]["mars"]["biology_closed_months"], 36)
+        self.assertGreaterEqual(state["sites"]["mars"]["machine_tended_months"], 24)
+        second = resolve(state, {"type": "wait", "months": 1}, force_event="none")
+        self.assertNotIn("foothold_victories", second)
+
+    def test_earth_arrival_resets_unsupplied_clocks(self):
+        state = new_state(user_id="cargo", seed=5)
+        state["treasury_busd"] = 20
+        self._life_site(state, "moon")
+        apply_month(state, "moon")
+        self.assertEqual(state["sites"]["moon"]["biology_closed_months"], 1)
+        landed = resolve(state, {"type": "mission", "profile": "lunar_cargo"}, force_roll=99, force_event="none")
+        self.assertTrue(landed["success"])
+        self.assertTrue(landed["closure_reset"])
+        self.assertEqual(state["sites"]["moon"]["biology_closed_months"], 0)
+
+    def test_crew_foothold_is_announced_once_without_ending(self):
+        state = new_state(user_id="crew500", seed=6)
+        self._crew_site(state)
+        first = resolve(state, {"type": "wait", "months": 17}, force_event="none")
+        self.assertEqual([item["outcome_reason"] for item in first["foothold_victories"]], ["foothold_500"])
+        self.assertTrue(first["foothold_victories"][0]["continues"])
+        self.assertIsNone(state["outcome"])
+        self.assertGreaterEqual(state["sites"]["mars"]["inhabited_days"], 500)
+        lines = "\n".join(first["summary_lines"])
+        self.assertIn("立足·人 mars:", lines)
+        self.assertIn("立足胜利", lines)
+        second = resolve(state, {"type": "wait", "months": 1}, force_event="none")
+        self.assertNotIn("foothold_victories", second)
+        self.assertIsNone(state["outcome"])
+
+    def test_a_death_or_a_dead_earth_blocks_the_crew_foothold(self):
+        state = new_state(user_id="diefoot", seed=7)
+        site = self._crew_site(state)
+        apply_month(state, "mars")
+        self.assertEqual(site["inhabited_days"], 30)
+        site["trial"] = True
+        site["farms_m2"] = 0
+        site["fission_kwe"] = 0
+        site["isru_o2_kg_year"] = 0
+        apply_month(state, "mars")
+        self.assertEqual(site["inhabited_days"], 0)
+        self.assertGreater(site["fatalities"], 0)
+
+        state = new_state(user_id="earthy", seed=8)
+        self._crew_site(state)
+        state["sites"]["mars"]["inhabited_days"] = 480
+        state["earth_stability"] = 0
+        result = resolve(state, {"type": "wait", "months": 1}, force_event="none")
+        self.assertEqual(result["outcome"], "game_over")
+        self.assertEqual(result["outcome_reason"], "earth_collapse")
+        self.assertFalse(state["footholds"]["human"]["achieved"])
+
+    def test_status_lines_show_each_path_at_zero(self):
+        state = new_state(user_id="lines", seed=9, language="en")
+        from rms.present import summary_lines
+
+        text = "\n".join(summary_lines(state))
+        self.assertIn("Foothold crew mars: 0/500 days", text)
+        self.assertIn("Foothold life mars: 0/36 months", text)
+        self.assertIn("Foothold machines mars: 0/24 months", text)
 
 
 if __name__ == "__main__":

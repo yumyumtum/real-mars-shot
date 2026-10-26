@@ -160,7 +160,7 @@ https://standards.nasa.gov/standard/NASA/NASA-STD-3001
 
 ICRP occupational dose analogy
 
-ICRP Publication 103 (2007). Planned occupational exposure is typically managed around 20 mSv/year averaged over 5 years (not more than 50 mSv in a single year). Using 20 mSv/year as a permanent-settlement design target is a game analogy, not a spaceflight rule and not a claim that ICRP certifies planetary habitats.
+ICRP Publication 103 (2007). Planned occupational exposure is typically managed around 20 mSv/year averaged over 5 years, with no single year above 50 mSv. The ember uses 20 mSv/year as a permanent-settlement design target. The 500-day crew foothold uses the 50 mSv single-year figure. Both are game analogies, not a spaceflight rule and not a claim that ICRP certifies planetary habitats.
 
 https://www.icrp.org/publication.asp?id=ICRP%20Publication%20103
 
@@ -211,6 +211,14 @@ Lichens survive space exposure
 Sancho, L.G. et al. Lichens survive in space: results from the 2005 LICHENS experiment. Astrobiology 7(3), 443–454 (2007). doi:10.1089/ast.2006.0046. Exposure survival again, not growth of a biosphere. On Mars, UV, desiccation, and perchlorates still block open-air establishment.
 
 https://doi.org/10.1089/ast.2006.0046
+
+## cospar_planetary_protection
+
+COSPAR planetary protection
+
+COSPAR Policy on Planetary Protection. Mars missions are typically Category IV; missions that can reach special regions are more stringent. The policy limits forward contamination of other worlds. It does not describe how to release organisms, and this game does not either. The political cost of a sealed off-world culture is an estimate of that constraint.
+
+https://cosparhq.cnes.fr/scientific-structure/panels/panel-on-planetary-protection-ppp/
 
 ## game_calibration
 
