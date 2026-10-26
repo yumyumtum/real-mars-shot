@@ -111,53 +111,96 @@ DRA 5.0 的锚：会合周期约 26 个月（779.94 天）；地火双向通信�
 
 同一结算先查火种。火种成立则赢，即使地球稳定度在同一次检查里已经是 0。
 
-## 立足 / Footholds
+## 立足与终局 / Footholds and endings
 
-火种之前有三种第一级胜利。每一种都要求宣布时地球还活着：稳定度 > 0，计划没有崩溃，也没有发生无约束释放。引擎把第一次达成写进 `footholds`，放进当回合的 `foothold_victories`，然后战役继续。第二次不再宣布。`state.outcome` 仍留给火种或游戏结束。
+时间分四档立足，两条终局。
 
-地球文明「还活着」在这里是字面的：立足是地球生命的一条分支，地球自己先没了，这条分支就不算赢。火种才是地球可以死去之后仍然算赢的那一档。
+立足不结束战役。每一种第一次跨过门槛时写入 `footholds`，放进当回合的 `foothold_victories`，`continues` 为真，`state.outcome` 仍为空。同一种不宣布第二次。宣布时地球必须还活着：稳定度 > 0，计划没有崩溃，也没有无约束释放。
 
-### 人 / Crew — `foothold_500`
+终局才写 `state.outcome = win` 并停表。两条终局：
 
-至少两人，在有栖息地的月球、火星或自由空间，连续活过 500 天。500 来自 DRA 5.0 的合式停留（约 500–540 天，一个算例是 539），游戏取 500，标成估计。账本一个月 30 天，所以 17 个月是 510 天。
+1. **火种** `ember:<site>`。十条人类文明清单在月球、火星或自由空间之一同时成立。同一检查里若生命之种也成立，记下的是火种。地球稳定度同时为 0 仍然算赢。
+2. **生命之种** `seed_of_life:biology:<site>` 或 `seed_of_life:machine:<site>`。地球生命在另一个世界上走到深时。生物路径优先于同一地点的机器照护路径；火星优先于月球和自由空间。地球的计划可以已经结束，但种子必须已经独立（进入过纪元，而且那颗世界上还有东西活着）。一万年是估计，不是新物种的时刻表。
 
-每个这样的月要同时成立：本地干食至少 25%（估计；火种要 90%），本地氧气至少 50%（估计，卡在已演示的约 47% 萨巴蒂尔回收之上），本地水至少盖住一半未回收废水（估计），库存只允许补上剩下的缺口。最坏情况功率至少等于需求（估计；火种要 1.2）。年剂量不超过 50 mSv，借用 ICRP 103 的单年管理上限，是估计，不是 NASA 飞行限值；火种仍是 20 mSv/年。当月有人死亡，或人数掉到 2 以下，时钟归零。
+### 人 / Humans
 
-只有库存、没有本地产出的月份不算。这不是野餐。
+`foothold_500`：至少两人，有栖息地，连续 500 天。500 来自 DRA 5.0 的合式停留（约 500–540 天，一个算例是 539），游戏取 500，标成估计。账本一个月 30 天，17 个月是 510 天。每个这样的月：本地干食 ≥25%（估计；火种要 90%），本地氧气 ≥50%（估计，卡在已演示的约 47% 萨巴蒂尔回收之上），本地水至少盖住一半损耗（估计），库存只补缺口。最坏情况功率 ≥1.0（估计）。年剂量 ≤50 mSv，借用 ICRP 103 的单年管理上限，是估计，不是飞行限值。有人死亡或人数掉到 2 以下，天数归零。地球货运不归零这只钟。只有库存不算。
 
-### 生物 / Life — `foothold_biology`
+`foothold_human_century`：大约 100 年，估计，大约四代人如果一代按 25 年粗算。25 不是实测的定居寿命。这一档还要求当地至少 8 人、至少一次地外出生。两个人变老不是下一代。100 年不是火种，也不是新物种。
 
-不必是人。蓝细菌、极端微生物、地衣、苔藓或作物，在那颗世界上至少成功培养两次（等级 ≥2），然后在封闭生态位里不靠地球补给延续 36 个月。
+### 生物 / Biology
 
-36 个月是估计，也是设计压缩。有利条件下许多蓝细菌以小时到一天分裂，所以这是成千上万个微生物世代；苔藓更接近一个生长季，所以这是几个生长季。它表示「起始营养包用完以后种群还在」，也就是日后可以演化的前提。游戏不快进数亿年。缓步动物的暴露试验永远不算。Sancho 等人的地衣空间暴露、Jönsson 等人的缓步动物暴露，都只是活下来，不是定居。
+不必是人。蓝细菌、极端微生物、地衣、苔藓或作物，在那颗世界上培养等级 ≥2。缓步动物永远不算。生态位是温室，或覆土栖息地（≥50 g/cm²，估计，针对紫外和干渴）。开放的火星地表不行：约 6 mbar、没有稳定液态水、有高氯酸盐、紫外线直接打下来。本地水 ≥100 kg/年（估计）。最坏情况功率 ≥2 kWe（估计）。
 
-生态位必须是温室，或者覆土栖息地（额外屏蔽 ≥50 g/cm²，估计，针对紫外和干渴，不是人体剂量）。开放的火星地表不行：约 6 mbar、没有稳定液态水、有高氯酸盐、紫外线直接打下来。本地水至少 100 kg/年（估计，够一个小穹顶，不够一船人）。最坏情况功率至少 2 kWe（估计）。
+`foothold_biology`：这样自持大约 **10 年**。这是「建立」。生物圈二号在大约两年里氧气失控（Severinghaus 等，1994）。十年是设计规则，比那次失败长一个量级，仍然不是物种形成。估计。
 
-任何成功的地球抵达都会把这只时钟清零。封闭培养仍然是前向污染：COSPAR 行星保护把火星任务放在 Category IV 一类。游戏不写释放步骤，只扣一笔政治资本（估计），并降低协和的支持。
+`seed_of_life:biology`：同一只生物时钟走到 **10,000 年**。Hendry、Nosil 与 Rieseberg（2007）说明生态物种形成没有单一时钟：有的例子是几百代，许多动物更接近一百万年级。一万年取的是「几千到几万年」的低端，是估计。它不是蓝细菌变成新物种的日程。
 
-### 机器照护的生命 / Machine-tended life — `foothold_machine`
+不要把它和 Lenski 与 Travisano（1994）的一万代大肠杆菌混在一起。那次实验里细菌一天分裂数次，一万代是几年培养，不是一万年。`ltee_generations` 把这个数单独存着，就是为了分开。
 
-机器人可以先到。只有机器人，没有生命，不算赢。它们必须已经在照看一条活着的生物立足（同一套封闭、繁殖、水、功率条件），并且自己能留下来：至少 3 台机器人，关键备件至少一半本地制造（估计；火种要 0.8），最坏情况功率至少 5 kWe（估计，落在 Kilopower 的 1–10 kWe 这一级，不是说 KRUSTY 已经飞过），当地至少 1000 份微生物或种子档案（估计，远小于火种的一万名人类供体）。这样连续 24 个月没有地球抵达。24 个月长过游戏里的一次尘暴季。这是维修和照护，不是冯·诺依曼自复制。
+任何成功的地球抵达都会把生物年、照护年和独立标记清零。封闭培养仍是前向污染：扣一笔政治资本（估计）。游戏不写释放步骤。
 
-Before the ember there are three first-tier wins. Earth has to be alive when each is announced: stability above zero, the program not collapsed, no uncontained release. The engine records the first crossing, puts it on that turn's `foothold_victories`, and play continues. It does not announce twice. `state.outcome` stays free for the ember or a loss.
+### 机器 / Machines
 
-A foothold is a living branch of Earth, so Earth itself has to still be standing. The ember is the win that remains valid after Earth dies.
+机器不需要氧气。它们的生命保障是矿石、能量、散热和维修。
 
-The crew path is 500 days for at least two people, the DRA 5.0 conjunction-class surface stay (about 500–540 days; the game takes 500 and marks it as an estimate). Local dry food at least 25%, local oxygen at least 50%, local water at least half of makeup, stores only for the remainder, worst-case power at parity with demand, and habitat dose at or below 50 mSv/year. A death resets the clock. A stockpile alone does not advance it.
+`foothold_machine`：大约 **50 年**自主维持、更新和复制。估计。1980 年 NASA/ASEE 夏季研究（1982 年出版为 NASA CP-2255，Freitas 与 Gilbreath 编）讨论过一座能用当地材料维持并长大的月球工厂。那座工厂没有建成。游戏不提供建造步骤。50 年不是那份报告里的实测寿命。
 
-The life path is a reproducing Earth species — not a tardigrade exposure — inside a greenhouse or a buried habitat, with local water and power, for 36 months without an Earth landing. Thirty-six months is thousands of microbial generations or a few moss seasons. It is the precondition for later evolution, not geological time. Open Martian ground fails: about 6 mbar, no stable liquid water, perchlorate, unfiltered UV. A sealed culture still costs political capital, because COSPAR treats Mars as a planetary-protection problem. The game does not describe a release.
+门槛，全部是估计，除非另注：至少 3 台机器人；本地金属 ≥1 吨/年；可采储矿 ≥100 吨；最坏情况电力 ≥5 kWe（Kilopower 的 1–10 kWe 这一级，不是说 KRUSTY 已经飞过）；散热至少 5 kWt，并且不少于裂变电功率的 4 倍（4 是估计，不是某座反应堆的散热曲线）；每年替换比例 ≥0.10，或不低于 0.08 的年故障比例，也可以改由本地备件比例 ≥0.5 顶上；复制保真度 ≥0.90。0.90 借用的是冯·诺依曼《自复制自动机理论》（1966，Burks 编）里「副本必须够真」的想法，不是测得的误码率，也不是探测器图纸。
 
-The machine path is those same living conditions plus maintainers: at least three robots, half of critical spares made locally, at least 5 kWe through the worst case, and a 1,000-accession archive, for 24 unattended months. Robots with no life do not win. This is maintenance, not self-replicating industry.
+没有生命的机器可以赢得这 50 年。它们赢不了火种，也赢不了生命之种。
+
+`seed_of_life:machine`：同一套复制器再照看一条活着的、能繁殖的培养（不是缓步动物），当地有至少 1000 份可重播的微生物或种子档案（估计，不是释放步骤），这样走到 10,000 年。演化的是生物。机器是园丁。
+
+稳定纪元的骰子 ≥96（估计）时，复制品可以好过上一代。这不是 50 年门槛的条件。受压、挫折和崩溃会扣保真度。掉到 0.90 以下，下一次机器纪元会被拒绝。
+
+`replicator_seed` 任务在研究门 `self_replicating_factory` 之后，把一座种子工厂送下去：金属速率、储矿、散热、维修比例和初始保真度。质量按 0.9 吨估计，以便落在已证实的约 1 吨火星着陆量级之内。它不是 NASA 那份研究的施工图。
+
+### 纪元 / Epochs
+
+普通 `wait` 最长 60 个月。深时走 `epoch`：`site` 是 moon、mars 或 freespace，`path` 是 human、biology 或 machine，`scale` 是 decade（10 年）、century（100 年）或 millennium（1000 年）。一步一掷。一千年不能一次叠成一万年。
+
+第一次快进之前，要用普通月份证明它转过一年（12 个月，估计）。生物圈二号没能干净地走完两年，所以游戏不让第一天就跳地质时间。人的纪元还要求 500 天已经在账上，并且眼下仍是多代定居。人不能走千年。生物或机器的千年，要等 10 年或 50 年那一档已经成立。
+
+骰子是 `sha256(seed:turn:salt)` 的 d100，和别的判定一样。盐是 `epoch:<path>:<site>:<scale>`。另一颗骰子 `epoch-earth:...` 决定地球的计划还在不在。
+
+| 点数 | 结果 | 估计 |
+| --- | --- | --- |
+| ≥70 | 整段年数加上 | 设计规则 |
+| ≥40 | 加上一半 | 设计规则 |
+| ≥15 | 不加，这一档的纪元年数减半 | 设计规则 |
+| 低于 15 | 这一档的纪元年数归零 | 设计规则 |
+| ≤5 的崩溃 | 再伤到种子本身：死一个人，或培养等级下降，或少一台机器人 | 设计规则 |
+
+风险只是名字：小行星撞击、太阳粒子、设备熵、突变负荷、生态崩溃、复制漂移、散热故障。游戏不写这些事怎么做。
+
+地球骰子 ≤5 / ≤25 / ≤55 分别对应十年、百年、千年（估计）。命中则地球稳定度归零，计划结束。种子若在这一步开始时已经独立，战役继续，直到生命之种或种子自己死光。种子若还没独立，地球归零仍是 `earth_collapse`。
+
+生物安全的无约束释放仍然直接结束，独立与否不论。试炼人口死光且地球救不了，仍是灭绝。
+
+机器纪元按金属速率消耗储矿。矿不够，这一步只活得了矿还能喂的那些年。一次地球飞船抵达会清掉生物年、机器年、照护年和独立标记。已经宣布过的立足不收回。人的天数和百年不因货运清零；人死了或月份不合格才会清。
+
+版本 1 的存档在读取时迁到版本 2。缺的场地字段补 0。已经宣布过的立足保持已宣布，`just_announced` 清掉，不会再宣布一次。旧的生物或机器立足会把对应的短时钟抬到新的 10 年或 50 年，以免同一条胜利再响一次。不赠送一万年。
+
+Four footholds do not end the campaign. Each is recorded once, while Earth is alive, and play continues. Two endings do end it. The ember (`ember:<site>`) is the ten-item human civilization. If the Seed of Life is also true in that same check, the recorded win is the ember. The Seed of Life (`seed_of_life:biology:<site>` or `seed_of_life:machine:<site>`) is Earth life reaching deep time on another world. On one world the biological path is reported before the machine-tended path. Mars is checked before the Moon and free space. Earth may already have stopped paying for the program. The seed has to be independent: an epoch has started, and something there is still alive. Ten thousand years is an estimate, not a speciation schedule.
+
+Humans: 500 days with a real local share of food, oxygen, and water, dose at or below 50 mSv/year (an ICRP single-year analogy, an estimate), then about 100 years once at least eight people and one off-world birth are in place. A hundred years is a few generations, not the ember.
+
+Biology: a reproducing sheltered culture, not a tardigrade and not open regolith, for about 10 years (established; Biosphere 2 lost oxygen control in about two years) and then 10,000 years. Hendry, Nosil, and Rieseberg (2007) is the citation that speciation has no single clock. Lenski and Travisano (1994) is cited so their 10,000 bacterial generations are not mistaken for 10,000 years.
+
+Machines do not need oxygen. Fifty years (an estimate anchored to the 1980 NASA self-replicating lunar factory study, NASA CP-2255, 1982, which was not built) requires ore, a metal rate, electric power, radiators, repair at least as fast as the failure rate, and copy fidelity at or above 0.90. That floor is an estimate in the spirit of von Neumann's 1966 theory, not a measured error rate and not a blueprint. Machines alone can win those 50 years. They cannot win the ember or the Seed of Life. The machine ending is 10,000 years of a replicator tending a living culture it can re-seed.
+
+An epoch is one decade, one century, or one millennium, and one risk roll. Humans cannot take a millennium. A millennium of life or machines waits until the 10-year or 50-year tier is already real. A separate roll can end Earth's program. An independent seed continues. A seed that has not entered an epoch does not. Version-1 saves migrate on load. An announcement that already happened does not fire again. Deep time is not granted by the migration.
 
 ## 8. 失败 / Losses
 
 致命：
 
 - 确认之后把试验生物在地球上无约束释放（`biosafety`）。确认前会停下来问。游戏不提供培养或释放步骤。
-- 地球稳定度 ≤0（气候、政治、灾害把地球自己打垮）。
-- 计划崩溃：连续赤字 ≥12 个月，且政治资本 ≤0，且舆论 ≤15。
-- 孤注一掷：一次载人死亡，同时国库 <0.3、政治资本 ≤10、可飞乘员 <4、地外没有机器人。
-- 地外灭绝且地球已救不了（见上）。
+- 地球稳定度 ≤0（气候、政治、灾害把地球自己打垮）。已经独立的地外种子不因此结束：地球计划记为结束，种子继续，直到生命之种或种子自己死掉。
+- 计划崩溃：连续赤字 ≥12 个月，且政治资本 ≤0，且舆论 ≤15。独立种子同样不因此结束。
+- 孤注一掷：一次载人死亡，同时国库 <0.3、政治资本 ≤10、可飞乘员 <4、地外没有机器人。独立种子不因此结束。
+- 地外灭绝且地球已救不了（稳定 <25）。地球已经归零时，死掉的种子仍是输。
 
 可恢复：单次火箭失败、模拟舱撤离、预算削减、错过窗口、作物病害、还没构成孤注一掷的乘员死亡。模拟失败增加知识，记一次生物圈二号式的氧气教训，人撤出来。
 

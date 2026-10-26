@@ -212,6 +212,38 @@ Sancho, L.G. et al. Lichens survive in space: results from the 2005 LICHENS expe
 
 https://doi.org/10.1089/ast.2006.0046
 
+## lenski_travisano_1994
+
+10,000 generations of E. coli, not 10,000 years
+
+Lenski, R.E. and Travisano, M. Dynamics of adaptation and diversification: a 10,000-generation experiment with bacterial populations. PNAS 91(15), 6808–6814 (1994). doi:10.1073/pnas.91.15.6808. Early results of the long-term evolution experiment: adaptation and divergence among populations. E. coli in that experiment divides several times a day, so 10,000 generations are a few years of flasks. The game stores this number so it is not confused with the 10,000-year deep-time tier. Microbial experimental evolution is much faster than speciation-scale calendar time. The tier does not claim otherwise.
+
+https://doi.org/10.1073/pnas.91.15.6808
+
+## hendry2007_speciation
+
+Ecological speciation has no single clock
+
+Hendry, A.P., Nosil, P. and Rieseberg, L.H. The speed of ecological speciation. Functional Ecology 21(3), 455–464 (2007). doi:10.1111/j.1365-2435.2007.01240.x. The paper's point is that "how long does speciation take" has no single answer. Some ecological cases are a few hundred generations. Many animal lineages are closer to a million years. The game's 10,000-year mark is an estimate set at the low end of "thousands to tens of thousands of years." It is not a measurement from this paper, and it is not a schedule on which a moss or a microbe becomes a named new species.
+
+https://doi.org/10.1111/j.1365-2435.2007.01240.x
+
+## nasa_cp2255_1982
+
+1980 NASA study of a self-replicating lunar factory
+
+Freitas, R.A. Jr. and Gilbreath, W.P. (eds). Advanced Automation for Space Missions. NASA Conference Publication 2255 (1982). Proceedings of the 1980 NASA/ASEE summer study on a lunar factory that would maintain itself and grow from local material. It is a concept study. The factory was not built. This game does not copy its design and does not provide a way to build one. The 50-year machine tier, the metal rate, and the "copies got better" die roll are estimates anchored to that idea: ore, energy, heat rejection, repair, and replication. They are not figures quoted from the study as demonstrated performance.
+
+https://ntrs.nasa.gov/citations/19830007077
+
+## von_neumann_1966
+
+Theory of a self-reproducing automaton
+
+von Neumann, J. Theory of Self-Reproducing Automata. Edited and completed by A.W. Burks. University of Illinois Press (1966). A theoretical machine that contains a description of itself and a constructor that can copy both. The argument needs the copy to be faithful enough that the description survives. It is not a spacecraft design and not a measured error rate. The game's fidelity floor (0.90, an estimate) and the seed factory's starting fidelity (0.97, an estimate) are game numbers in that spirit. Drift can pull a line under the floor. The floor is then a reason the next epoch is refused, not a protocol for building the machine.
+
+https://archive.org/details/theoryofselfrepr00vonn_0
+
 ## cospar_planetary_protection
 
 COSPAR planetary protection

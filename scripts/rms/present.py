@@ -166,12 +166,18 @@ def summary_lines(state: dict[str, Any]) -> list[str]:
 
 def _foothold_lines(state: dict[str, Any], language: str) -> list[str]:
     text = i18n(language)
+    units = {
+        "days": text["foothold_unit_days"],
+        "months": text["foothold_unit_months"],
+        "years": text["foothold_unit_years"],
+    }
     lines = []
     for row in foothold_progress(state):
         label = text[f"foothold_{row['path']}"]
-        unit = text["foothold_unit_days"] if row["unit"] == "days" else text["foothold_unit_months"]
-        line = f"{label} {row['site']}: {row['current']}/{row['target']} {unit}"
-        if row["achieved"]:
+        line = f"{label} {row['site']}: {row['current']}/{row['target']} {units[row['unit']]}"
+        if row.get("terminal") and row["current"] >= row["target"]:
+            line += f" · {text['seed_won']}"
+        elif row["achieved"]:
             line += f" · {text['foothold_won']}"
         lines.append(line)
     return lines
@@ -201,6 +207,24 @@ def decorate(state: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
     payload["language"] = state.get("language", "zh")
     payload["outcome"] = state.get("outcome")
     payload["outcome_reason"] = state.get("outcome_reason")
+    reason = str(state.get("outcome_reason") or "")
+    if reason.startswith("seed_of_life:"):
+        _kind, path, site = (reason.split(":") + ["", ""])[:3]
+        if path == "biology":
+            payload["outcome_text"] = {
+                "zh": f"生命之种：地球生命在{site}独立走过了深时。这不是火种清单。战役到此结束。一万年是估计，不是一张物种时刻表。",
+                "en": f"Seed of Life: Earth life on {site} has carried itself through deep time. This is not the ember checklist. The campaign ends. Ten thousand years is an estimate, not a schedule for a new species.",
+            }
+        else:
+            payload["outcome_text"] = {
+                "zh": f"生命之种：机器在{site}照看的地球生命走过了深时。机器自己的五十年不算这一档。战役到此结束。",
+                "en": f"Seed of Life: Earth life tended by machines on {site} has passed through deep time. The 50-year machine tier is not this ending. The campaign ends.",
+            }
+    elif reason.startswith("ember:"):
+        payload["outcome_text"] = {
+            "zh": "火种成立。十条都在另一个世界上。这是人类文明的终局。若生命之种同时成立，这一局里记下的是火种。",
+            "en": "The ember holds. All ten items are true on another world. This is the ending for human civilization. If the Seed of Life is also true, this campaign records the ember.",
+        }
     payload["footholds"] = foothold_progress(state)
     victories = []
     for key, row in (state.get("footholds") or {}).items():
@@ -208,16 +232,20 @@ def decorate(state: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
             continue
         text = {
             "foothold_500": {
-                "zh": f"立足胜利：人在{row['site']}连续活过{row['progress']}天，本地粮食、氧气和水撑住了其中真实的一份，地球也还在。这不是火种。战役继续。",
-                "en": f"Foothold won: people stayed alive on {row['site']} for {row['progress']} days, with a real share of food, oxygen, and water made there, and Earth is still alive. This is not the ember. The campaign continues.",
+                "zh": f"立足胜利：人在{row['site']}连续活过{row['progress']}天，本地粮食、氧气和水撑住了其中真实的一份，地球也还在。这是短的一档，不是百年，也不是火种。战役继续。",
+                "en": f"Foothold won: people stayed alive on {row['site']} for {row['progress']} days, with a real share of food, oxygen, and water made there, and Earth is still alive. This is the short tier, not the century, and not the ember. The campaign continues.",
+            },
+            "foothold_human_century": {
+                "zh": f"立足胜利：人在{row['site']}繁衍着度过了{row['progress']}年。这是几代人（估计），不是火种，也不是新物种。战役继续。",
+                "en": f"Foothold won: people on {row['site']} lived and had children across {row['progress']} years. That is a few generations (an estimate), not the ember, and not a new species. The campaign continues.",
             },
             "foothold_biology": {
-                "zh": f"立足胜利：地球生命在{row['site']}的封闭生态位里、不靠地球补给，自行延续了{row['progress']}个月。缓步动物的暴露不算，开放的火星地表也不算。战役继续。",
-                "en": f"Foothold won: Earth life persisted on {row['site']} for {row['progress']} months inside a sheltered niche, with no Earth resupply. A tardigrade exposure does not count, and neither does the open Martian surface. The campaign continues.",
+                "zh": f"立足胜利：地球生命在{row['site']}的封闭生态位里、不靠地球补给，已经站稳{row['progress']}年。这是「建立」，不是新物种。缓步动物的暴露不算，开放地表也不算。战役继续。",
+                "en": f"Foothold won: Earth life on {row['site']} has held a sheltered niche for {row['progress']} years with no Earth resupply. That is established, not a new species. A tardigrade exposure does not count, and neither does open ground. The campaign continues.",
             },
             "foothold_machine": {
-                "zh": f"立足胜利：机器在{row['site']}独自维持电力、备件、活着的生物和一份档案，已经{row['progress']}个月。没有生命的机器人不算。战役继续。",
-                "en": f"Foothold won: machines on {row['site']} kept power, spares, living Earth organisms, and an archive going for {row['progress']} months with no Earth arrival. Robots with no life do not count. The campaign continues.",
+                "zh": f"立足胜利：机器在{row['site']}靠矿石、能源、散热和维修自行维持并复制了{row['progress']}年。它们不需要氧气。这还不是被机器照看的生命在演化。战役继续。",
+                "en": f"Foothold won: machines on {row['site']} mined, powered, cooled, repaired, and copied themselves for {row['progress']} years. They do not need oxygen. This is not yet machine-tended life evolving. The campaign continues.",
             },
         }[row["reason"]]
         victories.append({
@@ -259,10 +287,12 @@ def opening_brief(state: dict[str, Any]) -> dict[str, str]:
         "连续五年不靠地球的生命物资，水循环至少 98%，本地粮食、氧气、功率和剂量达标，"
         "并且要么有大约一万四千名居民，要么有一百名居民、十次地外出生、和一万名供体的种质档案。"
         "一百个人本身不是一个物种备份。档案才是那一轮新的骰子。"
-        "在那之前有三种立足，每一种都要求地球还没垮，宣布一次，然后战役继续。"
-        "人：至少两人在月球、火星或深空连续活过500天，本地干食至少四分之一、本地氧气至少一半、损耗的水至少一半来自当地。"
-        "生物：能繁殖的地球物种（蓝细菌、地衣、苔藓、极端微生物或作物，不包括只是挨过暴露的缓步动物）在温室或覆土生态位里、不靠地球补给，延续36个月。开放地表不算。"
-        "机器：机器人维持电力、备件、活着的生物和一份档案至少24个月。没有生命的机器不算。"
+        "在火种之前有四档立足，宣布一次，战役继续，而且宣布时地球必须还活着。"
+        "人先活过500天（本地干食至少四分之一、氧气至少一半、损耗的水至少一半来自当地），再在有了下一代之后活过大约100年。"
+        "生物要在温室或覆土生态位里不靠地球补给先站稳大约10年，那是「建立」，不是新物种。缓步动物和开放地表都不算。"
+        "机器可以单独立足：大约50年自己采矿、供电、散热、替换坏掉的单位并复制自己。机器不需要氧气。"
+        "真正的终点有两个。火种仍是人类文明的十条。生命之种是另一条终局：生物自己，或被机器照看的生物，在另一个世界上走到大约一万年的演化尺度。一万年是估计，不是实验室里的一万代，也不是一张物种时刻表。"
+        "月回合走不到那么远。系统一旦能自己维持，可以用纪元快进十年、百年或千年，每一步掷一次风险。地球的计划可能在纪元里结束。种子若已经独立，战役还在；若还没有独立，地球垮了就是输。"
         f"若把未来十年全部近地轨道运力都用来送人，化学推进大约只能送出 {people['people']} 人。"
         "所以顺序不该是先把人扔出去。先在地球上把冷、热、真空、低氧和封闭生态做错几次，"
         "然后是机器，然后是月球，然后是微生物和植物，然后才是人，然后才是火星窗口。"
@@ -274,10 +304,12 @@ def opening_brief(state: dict[str, Any]) -> dict[str, str]:
         "five years without life-critical resupply, water recovery at least 98%, local food, oxygen, "
         "power, and dose on target, and either about 14,000 residents or 100 residents, ten off-world births, "
         "and a 10,000-donor archive. A hundred people are not a species backup. The archive is the next throw of the dice. "
-        "Before that there are three footholds. Each one requires Earth still standing, is announced once, and does not end the campaign. "
-        "Crew: at least two people alive for 500 days on the Moon, Mars, or in free space, with at least a quarter of dry food, half of oxygen, and half of water losses made locally. "
-        "Life: a reproducing Earth species (cyanobacteria, lichen, moss, extremophiles, or crops — not a tardigrade that merely endured exposure) persists 36 months in a greenhouse or buried niche with no Earth resupply. Open ground does not count. "
-        "Machines: robots keep power, spares, living organisms, and an archive going for 24 months. Machines with no life do not count. "
+        "Before the ember there are four footholds. Each is announced once, the campaign continues, and Earth has to be alive at the announcement. "
+        "People first last 500 days, with a real local share of food, oxygen, and water, and then, once a child has been born, about 100 years. "
+        "Life has to hold a greenhouse or a buried niche with no Earth resupply for about 10 years. That is established, not a new species. A tardigrade exposure does not count, and neither does open ground. "
+        "Machines may win a foothold alone: about 50 years of mining, power, heat rejection, replacement, and copying. Machines do not need oxygen. "
+        "There are two endings. The ember is still the ten-item human civilization. The Seed of Life is the other: biology itself, or biology tended by machines, reaches about 10,000 years of evolution on another world. Ten thousand years is an estimate. It is not 10,000 laboratory generations, and it is not a schedule for a new species. "
+        "Monthly turns cannot get there. Once a system sustains itself, an epoch fast-forwards a decade, a century, or a millennium, with one risk roll each step. Earth's program can end during an epoch. An independent seed keeps the campaign. A seed that is not independent yet loses if Earth falls. "
         f"If every tonne of LEO capacity for a decade is spent on crew, chemical propulsion sends about {people['people']} people. "
         "So the order is not 'throw the crew.' Fail the cold, the heat, the vacuum, and the closed air on Earth first, "
         "then machines, then the Moon, then microbes and plants, then humans, then a Mars window. "

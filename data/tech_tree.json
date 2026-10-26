@@ -189,6 +189,16 @@
     "why_zh": "史密斯 2014 的数量级是没有种质库时需要上万人。一百个活人加上大型档案，才是一颗骰子，而不是一个瓶颈。",
     "why_en": "Smith 2014 is tens of thousands of people if there is no bank. A hundred living humans plus a large archive is a die to throw, not a bottleneck pretending to be a species."
   },
+  "self_replicating_factory": {
+    "phase": "independence",
+    "months": 24,
+    "cost_busd": 2.2,
+    "prereq": ["local_manufacturing", "industrial_isru"],
+    "zh": "自复制工厂的种子",
+    "en": "Seed of a self-replicating factory",
+    "why_zh": "1980 年的 NASA 夏季研究（1982 年出版为 NASA CP-2255）讨论过一座能用当地材料维持并长大的月球工厂。那是概念，不是已建成的工厂。这一项只打开研究门。游戏不提供建造步骤。冯·诺依曼 1966 年的自复制自动机是更早的理论，不是图纸。",
+    "why_en": "The 1980 NASA summer study, published in 1982 as NASA CP-2255, discussed a lunar factory that could maintain itself and grow from local material. It is a concept, not a built factory. This item only opens the research gate. The game does not provide a construction procedure. von Neumann's 1966 self-reproducing automaton is earlier theory, not a blueprint."
+  },
   "local_manufacturing": {
     "phase": "independence",
     "months": 22,

@@ -441,7 +441,7 @@ class FootholdTest(unittest.TestCase):
         self.assertEqual(site["biology_closed_months"], 0)
         self.assertIsNotNone(exposed["planetary_protection"])
 
-    def test_machines_without_life_do_not_win(self):
+    def test_machines_without_substrate_do_not_advance(self):
         state = new_state(user_id="bots", seed=3)
         mars = state["sites"]["mars"]
         mars.update({
@@ -453,19 +453,31 @@ class FootholdTest(unittest.TestCase):
             "isru_water_kg_year": 500,
         })
         report = apply_month(state, "mars")
-        self.assertEqual(mars["machine_tended_months"], 0)
-        self.assertIn("not_reproducing", report["machine_foothold"]["reasons"])
+        self.assertEqual(mars["machine_years"], 0)
+        self.assertEqual(mars["tended_years"], 0)
+        self.assertIn("metal", report["machine_foothold"]["reasons"])
+        self.assertNotIn("not_reproducing", report["machine_foothold"]["reasons"])
+        self.assertEqual(mars.get("isru_o2_kg_year", 0), 0)
 
-    def test_life_and_machine_paths_announce_once_and_play_continues(self):
+    def test_life_decade_is_announced_once_and_play_continues(self):
         state = new_state(user_id="life", seed=4)
         self._life_site(state)
-        first = resolve(state, {"type": "wait", "months": 36}, force_event="none")
+        waited = resolve(state, {"type": "wait", "months": 12}, force_event="none")
+        self.assertNotIn("foothold_victories", waited)
+        self.assertGreaterEqual(state["sites"]["mars"]["biology_closed_months"], 12)
+        self.assertLess(state["sites"]["mars"]["biology_years"], 10)
+        first = resolve(
+            state,
+            {"type": "epoch", "site": "mars", "path": "biology", "scale": "decade"},
+            force_roll=90,
+            force_event="none",
+            force_earth_roll=99,
+        )
         reasons = {item["outcome_reason"] for item in first["foothold_victories"]}
-        self.assertEqual(reasons, {"foothold_biology", "foothold_machine"})
+        self.assertEqual(reasons, {"foothold_biology"})
         self.assertTrue(all(item["continues"] for item in first["foothold_victories"]))
         self.assertIsNone(state["outcome"])
-        self.assertGreaterEqual(state["sites"]["mars"]["biology_closed_months"], 36)
-        self.assertGreaterEqual(state["sites"]["mars"]["machine_tended_months"], 24)
+        self.assertGreaterEqual(state["sites"]["mars"]["biology_years"], 10)
         second = resolve(state, {"type": "wait", "months": 1}, force_event="none")
         self.assertNotIn("foothold_victories", second)
 
@@ -523,8 +535,232 @@ class FootholdTest(unittest.TestCase):
 
         text = "\n".join(summary_lines(state))
         self.assertIn("Foothold crew mars: 0/500 days", text)
-        self.assertIn("Foothold life mars: 0/36 months", text)
-        self.assertIn("Foothold machines mars: 0/24 months", text)
+        self.assertIn("Foothold crew century mars: 0/100 years", text)
+        self.assertIn("Foothold life decade mars: 0/10 years", text)
+        self.assertIn("Foothold life deep mars: 0/10000 years", text)
+        self.assertIn("Foothold machines mars: 0/50 years", text)
+        self.assertIn("Foothold tended life mars: 0/10000 years", text)
+
+    def _machine_site(self, state, name="mars", *, life=False):
+        site = state["sites"][name]
+        site.update({
+            "robots": 3,
+            "fission_kwe": 10,
+            "heat_reject_kwe": 40,
+            "isru_metal_t_year": 2,
+            "ore_reserve_t": 100000,
+            "repair_fraction": 0.15,
+            "replication_fidelity": 0.97,
+            "machine_replicator_months": 12,
+            "isru_o2_kg_year": 0,
+        })
+        if life:
+            site.update({
+                "greenhouse": True,
+                "organisms": {"cyanobacteria": 2},
+                "isru_water_kg_year": 200,
+                "life_archive_accessions": 1000,
+            })
+        return site
+
+    def _century_crew(self, state):
+        site = self._crew_site(state)
+        site.update({
+            "population": 8,
+            "births": 1,
+            "farms_m2": 140,
+            "fission_kwe": 120,
+            "isru_o2_kg_year": 4000,
+            "isru_water_kg_year": 4000,
+            "stores": {"food_kg": 20000.0, "water_kg": 5000.0, "o2_kg": 20000.0},
+            "inhabited_days": 510,
+        })
+        return site
+
+    def test_a_replicator_does_not_need_oxygen_or_life(self):
+        state = new_state(user_id="ore", seed=11)
+        site = self._machine_site(state)
+        first = resolve(
+            state,
+            {"type": "epoch", "site": "mars", "path": "machine", "scale": "century"},
+            force_roll=90,
+            force_event="none",
+            force_earth_roll=99,
+        )
+        self.assertEqual([item["outcome_reason"] for item in first["foothold_victories"]], ["foothold_machine"])
+        self.assertTrue(first["foothold_victories"][0]["continues"])
+        self.assertIsNone(state["outcome"])
+        self.assertGreaterEqual(site["machine_years"], 50)
+        self.assertEqual(site["tended_years"], 0)
+        self.assertEqual(site["isru_o2_kg_year"], 0)
+
+    def test_machine_tended_life_is_the_deep_ending(self):
+        state = new_state(user_id="garden", seed=12)
+        site = self._machine_site(state, life=True)
+        site["machine_years"] = 50
+        site["tended_years"] = 9000
+        site["epoch_paths"] = {"machine": True}
+        bare = resolve(
+            state,
+            {"type": "epoch", "site": "mars", "path": "machine", "scale": "millennium"},
+            force_roll=90,
+            force_event="none",
+            force_earth_roll=99,
+        )
+        self.assertEqual(bare["outcome"], "win")
+        self.assertEqual(bare["outcome_reason"], "seed_of_life:machine:mars")
+        self.assertGreaterEqual(site["tended_years"], 10000)
+
+    def test_deep_biology_ends_the_campaign_even_if_earth_ends(self):
+        state = new_state(user_id="deep", seed=13)
+        self._life_site(state)
+        site = state["sites"]["mars"]
+        site["biology_closed_months"] = 12
+        site["biology_years"] = 9000
+        result = resolve(
+            state,
+            {"type": "epoch", "site": "mars", "path": "biology", "scale": "millennium"},
+            force_roll=90,
+            force_event="none",
+            force_earth_roll=1,
+        )
+        self.assertEqual(result["outcome"], "win")
+        self.assertEqual(result["outcome_reason"], "seed_of_life:biology:mars")
+        self.assertEqual(state["earth_stability"], 0)
+        self.assertTrue(state["earth_program_ended"])
+        self.assertIn("生命之种", result["outcome_text"]["zh"])
+        again = resolve(state, {"type": "epoch", "site": "mars", "path": "biology", "scale": "decade"})
+        self.assertTrue(again["ended"])
+
+    def test_epoch_is_refused_until_the_system_is_shown(self):
+        state = new_state(user_id="early", seed=14)
+        self._life_site(state)
+        refused = resolve(state, {"type": "epoch", "site": "mars", "path": "biology", "scale": "decade"}, force_event="none")
+        self.assertFalse(refused["ok"])
+        self.assertIn("not_demonstrated", refused["reasons"])
+        self.assertEqual(state["clock"]["turn"], 0)
+        state["sites"]["mars"]["biology_closed_months"] = 12
+        locked = resolve(
+            state,
+            {"type": "epoch", "site": "mars", "path": "biology", "scale": "millennium"},
+            force_event="none",
+            force_earth_roll=99,
+        )
+        self.assertFalse(locked["ok"])
+        self.assertIn("deep_locked", locked["reasons"])
+
+    def test_a_collapse_roll_clears_the_epoch_clock(self):
+        state = new_state(user_id="collapse", seed=15)
+        self._life_site(state)
+        site = state["sites"]["mars"]
+        site["biology_closed_months"] = 12
+        site["biology_years"] = 40
+        result = resolve(
+            state,
+            {"type": "epoch", "site": "mars", "path": "biology", "scale": "decade"},
+            force_roll=3,
+            force_event="none",
+            force_earth_roll=99,
+        )
+        self.assertEqual(result["band"], "collapse")
+        self.assertEqual(site["biology_years"], 0)
+        self.assertIsNone(state["outcome"])
+        self.assertEqual(site["organisms"]["cyanobacteria"], 1)
+
+    def test_epoch_dice_follow_the_seed(self):
+        def once(seed):
+            state = new_state(user_id=f"dice{seed}", seed=seed)
+            self._life_site(state)
+            state["sites"]["mars"]["biology_closed_months"] = 12
+            return resolve(
+                state,
+                {"type": "epoch", "site": "mars", "path": "biology", "scale": "decade"},
+                force_event="none",
+                force_earth_roll=99,
+            )
+
+        first = once(21)
+        second = once(21)
+        self.assertEqual(first["roll"], second["roll"])
+        self.assertEqual(first["band"], second["band"])
+        self.assertEqual(first["biology_years"], second["biology_years"])
+
+    def test_human_century_needs_a_birth_and_does_not_end_the_game(self):
+        state = new_state(user_id="century", seed=16)
+        self._century_crew(state)
+        state["sites"]["mars"]["births"] = 0
+        refused = resolve(
+            state,
+            {"type": "epoch", "site": "mars", "path": "human", "scale": "century"},
+            force_event="none",
+        )
+        self.assertIn("not_multigenerational", refused["reasons"])
+        state["sites"]["mars"]["births"] = 1
+        won = resolve(
+            state,
+            {"type": "epoch", "site": "mars", "path": "human", "scale": "century"},
+            force_roll=90,
+            force_event="none",
+            force_earth_roll=99,
+        )
+        reasons = {item["outcome_reason"] for item in won["foothold_victories"]}
+        self.assertEqual(reasons, {"foothold_500", "foothold_human_century"})
+        self.assertTrue(all(item["continues"] for item in won["foothold_victories"]))
+        self.assertIsNone(state["outcome"])
+        self.assertGreaterEqual(state["sites"]["mars"]["inhabited_years"], 100)
+
+    def test_an_earth_landing_resets_deep_clocks(self):
+        state = new_state(user_id="resetdeep", seed=17)
+        state["treasury_busd"] = 20
+        site = self._life_site(state, "moon")
+        site["biology_years"] = 12
+        site["epoch_paths"] = {"biology": True}
+        landed = resolve(state, {"type": "mission", "profile": "lunar_cargo"}, force_roll=99, force_event="none")
+        self.assertTrue(landed["closure_reset"])
+        self.assertEqual(state["sites"]["moon"]["biology_years"], 0)
+        self.assertEqual(state["sites"]["moon"]["epoch_paths"], {})
+
+    def test_a_version_one_save_still_loads(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            os.environ["REALMARSSHOT_SAVE_DIR"] = tmp
+            try:
+                state = new_state(user_id="gagag", language="zh", seed=3)
+                state["version"] = 1
+                state["clock"]["turn"] = 1
+                state["footholds"]["biology"] = {
+                    "achieved": True,
+                    "announced": True,
+                    "just_announced": True,
+                    "reason": "foothold_biology",
+                    "site": "mars",
+                    "progress": 36,
+                }
+                del state["footholds"]["human_century"]
+                for site in state["sites"].values():
+                    site.pop("biology_years", None)
+                    site.pop("machine_years", None)
+                    site.pop("tended_years", None)
+                    site.pop("inhabited_years", None)
+                    site.pop("ore_reserve_t", None)
+                    site.pop("epoch_paths", None)
+                save_game(state, backup=False)
+                loaded = load_game("gagag")
+                self.assertTrue(loaded["exists"])
+                data = loaded["data"]
+                self.assertEqual(data["version"], 2)
+                self.assertFalse(data["footholds"]["biology"]["just_announced"])
+                self.assertTrue(data["footholds"]["biology"]["achieved"])
+                self.assertGreaterEqual(data["sites"]["mars"]["biology_years"], 10)
+                self.assertEqual(data["sites"]["mars"]["machine_years"], 0)
+                self.assertIn("human_century", data["footholds"])
+                self.assertIn("ore_reserve_t", data["sites"]["mars"])
+                status = resolve(data, {"type": "status"})
+                self.assertTrue(status["ok"])
+                self.assertNotIn("foothold_victories", status)
+                self.assertIsNone(status["outcome"])
+                self.assertIn("立足·生物·十年", "\n".join(status["summary_lines"]))
+            finally:
+                os.environ.pop("REALMARSSHOT_SAVE_DIR", None)
 
 
 if __name__ == "__main__":

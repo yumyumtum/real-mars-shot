@@ -129,6 +129,26 @@
     "citation": "Sancho, L.G. et al. Lichens survive in space: results from the 2005 LICHENS experiment. Astrobiology 7(3), 443–454 (2007). doi:10.1089/ast.2006.0046. Exposure survival again, not growth of a biosphere. On Mars, UV, desiccation, and perchlorates still block open-air establishment.",
     "url": "https://doi.org/10.1089/ast.2006.0046"
   },
+  "lenski_travisano_1994": {
+    "short": "10,000 generations of E. coli, not 10,000 years",
+    "citation": "Lenski, R.E. and Travisano, M. Dynamics of adaptation and diversification: a 10,000-generation experiment with bacterial populations. PNAS 91(15), 6808–6814 (1994). doi:10.1073/pnas.91.15.6808. Adaptation and divergence in the early long-term evolution experiment. At several generations per day, 10,000 generations are a few years of culture. The game cites this so the 10,000-year tier is not mistaken for it.",
+    "url": "https://doi.org/10.1073/pnas.91.15.6808"
+  },
+  "hendry2007_speciation": {
+    "short": "Ecological speciation has no single clock",
+    "citation": "Hendry, A.P., Nosil, P. and Rieseberg, L.H. The speed of ecological speciation. Functional Ecology 21(3), 455–464 (2007). doi:10.1111/j.1365-2435.2007.01240.x. Some ecological speciation is a few hundred generations; many animal lineages are closer to a million years. The game's 10,000-year tier is an estimate at the low end of the owner's deep-time ask, not a number from this paper and not a promise that a moss becomes a new species on schedule.",
+    "url": "https://doi.org/10.1111/j.1365-2435.2007.01240.x"
+  },
+  "nasa_cp2255_1982": {
+    "short": "1980 NASA study of a self-replicating lunar factory",
+    "citation": "Freitas, R.A. Jr. and Gilbreath, W.P. (eds). Advanced Automation for Space Missions. NASA Conference Publication 2255 (1982). Proceedings of the 1980 NASA/ASEE summer study on self-replicating lunar manufacturing. A concept study. The factory was not built. This game does not reproduce its design or a construction procedure. The 50-year machine tier and the metal rate are estimates anchored to the idea of local feedstock, repair, and growth.",
+    "url": "https://ntrs.nasa.gov/citations/19830007077"
+  },
+  "von_neumann_1966": {
+    "short": "Theory of a self-reproducing automaton",
+    "citation": "von Neumann, J. Theory of Self-Reproducing Automata. Edited and completed by A.W. Burks. University of Illinois Press (1966). A theoretical model of a machine that can copy itself, including the idea that the copy must be reliable enough to keep the description intact. Not a probe, not a lunar factory, and not a measured error rate. The game's fidelity floor is an estimate in that spirit.",
+    "url": "https://archive.org/details/theoryofselfrepr00vonn_0"
+  },
   "cospar_planetary_protection": {
     "short": "COSPAR planetary protection",
     "citation": "COSPAR Policy on Planetary Protection. Mars missions are typically Category IV; missions that can reach special regions are more stringent. The policy limits forward contamination of other worlds. It does not describe how to release organisms, and this game does not either. The political cost of a sealed off-world culture is an estimate of that constraint.",

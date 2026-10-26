@@ -4,18 +4,23 @@ The independence clock advances only on a month that meets the ember
 thresholds with local production. Stores can keep people alive and still
 not count. A resupply resets that clock.
 
-Three foothold clocks are separate from the ember.
+Foothold clocks are separate from the ember.
 
-Human: 30-day months in which a crew stays alive and local food, oxygen,
+Human days: 30-day months in which a crew stays alive and local food, oxygen,
 and water cover a real share. Stores may fill the gap. They cannot, alone,
 advance the clock. A death resets it. Earth cargo does not.
 
-Biology: months a reproducing Earth species persists in a sheltered niche
-with local water and power, and no Earth arrival. Open sky does not count.
-A tardigrade exposure does not count.
+Human years: the same month also counts toward a century only when the
+settlement is multi-generational (enough people, and at least one birth).
 
-Machine: months robots keep that living niche, a local archive, spare parts,
-and power going with no Earth arrival. Robots with no life do not count.
+Biology years: a reproducing Earth species in a sheltered niche, with local
+water and power, and no Earth arrival. Open sky does not count. A tardigrade
+exposure does not count. Ten years is the established tier. The deep tier
+uses the same clock.
+
+Machines do not need oxygen. A replicator month needs ore, metal, electric
+power, radiators, repair, and copy fidelity. Tended years advance only when
+that replicator is also keeping a living, reproducing culture and an archive.
 """
 
 from __future__ import annotations
@@ -176,19 +181,54 @@ def biology_month(site_name: str, site: dict[str, Any]) -> dict[str, Any]:
     return {"ok": not reasons, "reasons": reasons}
 
 
-def machine_month(site_name: str, site: dict[str, Any]) -> dict[str, Any]:
-    """Robots keeping Earth life and an archive. Machines alone fail."""
-    life = biology_month(site_name, site)
-    reasons = list(life["reasons"])
+def heat_required_kwe(site: dict[str, Any]) -> float:
+    """Radiators must cover a floor, and fission waste heat above that."""
+    floor = float(V("win", "foothold_machine_heat_floor_kwe"))
+    per_kwe = float(V("win", "foothold_machine_heat_per_kwe"))
+    fission = float(site.get("fission_kwe", 0.0))
+    return max(floor, fission * per_kwe)
+
+
+def machine_replicator(site_name: str, site: dict[str, Any]) -> dict[str, Any]:
+    """Ore, energy, heat, repair, fidelity. Oxygen is not a machine need."""
+    reasons: list[str] = []
+    repair = float(site.get("repair_fraction", 0.0))
+    failure = float(V("win", "foothold_machine_failure_fraction"))
+    repair_floor = float(V("win", "foothold_machine_repair_fraction"))
+    industry = float(site.get("industrial_closure", 0.0))
+    repair_ok = repair + 1e-9 >= max(failure, repair_floor) or industry + 1e-9 >= float(V("win", "foothold_machine_industry"))
     if int(site.get("robots", 0)) < int(V("win", "foothold_machine_robots")):
         reasons.append("robots")
-    if float(site.get("industrial_closure", 0.0)) + 1e-9 < V("win", "foothold_machine_industry"):
-        reasons.append("industry")
+    if float(site.get("isru_metal_t_year", 0.0)) + 1e-9 < float(V("win", "foothold_machine_metal_t_year")):
+        reasons.append("metal")
+    if float(site.get("ore_reserve_t", 0.0)) + 1e-9 < float(V("win", "foothold_machine_ore_t")):
+        reasons.append("ore")
+    if power_worst_kwe(site_name, site) + 1e-9 < float(V("win", "foothold_machine_power_kwe")):
+        reasons.append("power")
+    if float(site.get("heat_reject_kwe", 0.0)) + 1e-9 < heat_required_kwe(site):
+        reasons.append("heat")
+    if not repair_ok:
+        reasons.append("repair")
+    if float(site.get("replication_fidelity", 0.0)) + 1e-9 < float(V("win", "foothold_machine_fidelity_min")):
+        reasons.append("fidelity")
+    return {"ok": not reasons, "reasons": reasons, "heat_required_kwe": heat_required_kwe(site)}
+
+
+def tended_life(site_name: str, site: dict[str, Any]) -> dict[str, Any]:
+    """A replicator that is also keeping a living culture it can re-seed."""
+    machines = machine_replicator(site_name, site)
+    life = biology_month(site_name, site)
+    reasons = list(machines["reasons"]) + [item for item in life["reasons"] if item not in machines["reasons"]]
     if int(site.get("life_archive_accessions", 0)) < int(V("win", "foothold_machine_archive_accessions")):
         reasons.append("archive")
-    if power_worst_kwe(site_name, site) + 1e-9 < V("win", "foothold_machine_power_kwe"):
-        reasons.append("machine_power")
-    return {"ok": not reasons, "reasons": reasons, "life": life["ok"]}
+    return {"ok": not reasons, "reasons": reasons, "life": life["ok"], "replicator": machines["ok"]}
+
+
+def machine_month(site_name: str, site: dict[str, Any]) -> dict[str, Any]:
+    """Backward-compatible name. This is the replicator, not tended life."""
+    report = machine_replicator(site_name, site)
+    report["life"] = biology_month(site_name, site)["ok"]
+    return report
 
 
 def _tick_months(site: dict[str, Any], field: str, ok: bool, *, resupply: bool) -> str:
@@ -196,6 +236,25 @@ def _tick_months(site: dict[str, Any], field: str, ok: bool, *, resupply: bool) 
         site[field] = 0
         return "reset_resupply" if resupply else "reset"
     site[field] = int(site.get(field, 0)) + 1
+    return "advanced"
+
+
+def _tick_years(site: dict[str, Any], field: str, ok: bool, *, resupply: bool, independent: bool) -> str:
+    """Month-scale progress. An Earth landing wipes the clock.
+
+    Before the path has entered an epoch, a failed month wipes it too.
+    After that, one bad month holds the deep clock instead of erasing it.
+    """
+    if resupply:
+        site[field] = 0.0
+        return "reset_resupply"
+    if not ok:
+        if independent:
+            return "held"
+        site[field] = 0.0
+        return "reset"
+    step = float(V("win", "foothold_month_days")) / 365.25
+    site[field] = float(site.get(field, 0.0)) + step
     return "advanced"
 
 
@@ -212,6 +271,18 @@ def _advance_foothold(
     fatalities = int(site.get("fatalities", 0))
     min_people = int(V("win", "foothold_min_population"))
     broken = fatalities > fatalities_before or population < population_before or population < min_people
+    independent = bool((site.get("epoch_paths") or {}).get("human"))
+    century = (
+        qualifying["ok"]
+        and not broken
+        and population >= int(V("win", "foothold_century_min_population"))
+        and int(site.get("births", 0)) >= int(V("win", "foothold_century_min_births"))
+    )
+    if century:
+        step = float(V("win", "foothold_month_days")) / 365.25
+        site["inhabited_years"] = float(site.get("inhabited_years", 0.0)) + step
+    elif broken or not independent:
+        site["inhabited_years"] = 0.0
     if qualifying["ok"] and not broken:
         for kind, gap in qualifying["gaps"].items():
             if gap > 0:
@@ -254,14 +325,29 @@ def apply_month(state: dict[str, Any], site_name: str, resupply: bool = False) -
         population_before=population_before,
         fatalities_before=fatalities_before,
     )
+    if resupply:
+        site["epoch_paths"] = {}
+    paths = site.get("epoch_paths") or {}
     bio = biology_month(site_name, site)
     bio["clock"] = _tick_months(site, "biology_closed_months", bio["ok"], resupply=resupply)
+    bio["years_clock"] = _tick_years(site, "biology_years", bio["ok"], resupply=resupply, independent=bool(paths.get("biology")))
     bio["months"] = int(site.get("biology_closed_months", 0))
-    machines = machine_month(site_name, site)
-    machines["clock"] = _tick_months(site, "machine_tended_months", machines["ok"], resupply=resupply)
-    machines["months"] = int(site.get("machine_tended_months", 0))
+    bio["years"] = float(site.get("biology_years", 0.0))
+    machines = machine_replicator(site_name, site)
+    machines["clock"] = _tick_months(site, "machine_replicator_months", machines["ok"], resupply=resupply)
+    machines["years_clock"] = _tick_years(
+        site, "machine_years", machines["ok"], resupply=resupply, independent=bool(paths.get("machine"))
+    )
+    tended = tended_life(site_name, site)
+    tended["clock"] = _tick_months(site, "machine_tended_months", tended["ok"], resupply=resupply)
+    tended["years_clock"] = _tick_years(
+        site, "tended_years", tended["ok"], resupply=resupply, independent=bool(paths.get("machine"))
+    )
+    machines["months"] = int(site.get("machine_replicator_months", 0))
+    machines["years"] = float(site.get("machine_years", 0.0))
     report["biology_foothold"] = bio
     report["machine_foothold"] = machines
+    report["tended_life"] = tended
     if before > 0:
         site["dust_storm_months_left"] = before - 1
         if site["dust_storm_months_left"] == 0 and site.get("robots"):
