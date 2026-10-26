@@ -1,0 +1,142 @@
+{
+  "constants": {
+    "g0_m_s2": {"value": 9.80665, "estimate": false, "source_id": "std_gravity", "unit": "m/s^2"},
+    "c_m_s": {"value": 299792458, "estimate": false, "source_id": "codata_c", "unit": "m/s"}
+  },
+  "human": {
+    "body_mass_kg": {"value": 82, "estimate": false, "source_id": "nasa_bvad_2022", "note": "BVAD reference crewmember, mean male astronaut circa 2015. Real crews vary."},
+    "respiratory_quotient": {"value": 0.86, "estimate": false, "source_id": "nasa_bvad_2022"},
+    "o2_kg_per_cm_d": {"value": 0.895, "estimate": false, "source_id": "nasa_bvad_2022"},
+    "co2_kg_per_cm_d": {"value": 1.085, "estimate": false, "source_id": "nasa_bvad_2022"},
+    "food_solids_kg_per_cm_d": {"value": 0.8, "estimate": false, "source_id": "nasa_bvad_2022"},
+    "food_energy_MJ_per_cm_d": {"value": 12.778, "estimate": false, "source_id": "nasa_bvad_2022"},
+    "potable_water_kg_per_cm_d": {"value": 3.217, "estimate": false, "source_id": "nasa_bvad_2022", "note": "0.5 food prep + 2.00 drink + 0.717 exercise-related, BVAD Table 3-31."},
+    "water_in_food_kg_per_cm_d": {"value": 0.76, "estimate": false, "source_id": "nasa_bvad_2022"},
+    "fecal_water_kg_per_cm_d": {"value": 0.101, "estimate": false, "source_id": "nasa_bvad_2022"},
+    "respiration_perspiration_water_kg_per_cm_d": {"value": 2.946, "estimate": false, "source_id": "nasa_bvad_2022"},
+    "urine_water_kg_per_cm_d": {"value": 1.42, "estimate": false, "source_id": "nasa_bvad_2022"},
+    "food_logistics_kg_per_cm_d": {"value": 2.39, "estimate": false, "source_id": "nasa_bvad_2022", "note": "ISS planning mass including packaging, as discussed in BVAD from Ewert et al. 2019. Not the dry edible mass."},
+    "water_recovery_iss_before_bpa": {"value": 0.935, "estimate": false, "source_id": "nasa_iss_water_2023", "note": "NASA: 93–94% before the brine processor. Midpoint 0.935 used when a single number is required."},
+    "water_recovery_iss_with_bpa": {"value": 0.98, "estimate": false, "source_id": "nasa_iss_water_2023"},
+    "o2_recovery_from_co2_current": {"value": 0.47, "estimate": false, "source_id": "nasa_eclss_o2_2021"},
+    "o2_recovery_from_co2_goal": {"value": 0.75, "estimate": false, "source_id": "nasa_eclss_o2_2021"},
+    "electrolysis_kwh_per_kg_o2": {"value": 8.0, "estimate": true, "source_id": "game_calibration", "note": "Practical figure above the ~4 kWh/kg thermodynamic order. Not a named flight unit's measured specific energy."},
+    "farm_dry_edible_kg_per_m2_d": {"value": 0.015, "estimate": true, "source_id": "game_calibration", "note": "Order-of-magnitude controlled-environment rate for calorie crops, not a record lettuce yield. Lettuce fresh mass is a poor calorie proxy."},
+    "farm_light_kwe_per_m2": {"value": 0.4, "estimate": true, "source_id": "game_calibration", "note": "Electric lighting load. Sunlight greenhouses on the Moon/Mars still need power for the long night or dust season and for thermal control."},
+    "habitat_base_kwe": {"value": 5.0, "estimate": true, "source_id": "game_calibration", "note": "Small habitat hotel load, far below the ISS (~75–90 kW for a much larger pressurized volume)."},
+    "habitat_kwe_per_person": {"value": 2.0, "estimate": true, "source_id": "game_calibration"},
+    "o2_from_plants_kg_per_kg_dry_food": {"value": 1.1, "estimate": true, "source_id": "game_calibration", "note": "Rough stoichiometric company of edible dry biomass. Inedible biomass and RQ make this an estimate."}
+  },
+  "radiation": {
+    "cruise_mgy_per_day": {"value": 0.48, "uncertainty": 0.08, "estimate": false, "source_id": "zeitlin2013_cruise", "note": "Inside MSL, RTG subtracted. Not free-space and not a naked EVA."},
+    "cruise_mSv_per_day": {"value": 1.84, "uncertainty": 0.30, "estimate": false, "source_id": "zeitlin2013_cruise"},
+    "mars_surface_mgy_per_day": {"value": 0.21, "uncertainty": 0.04, "estimate": false, "source_id": "zeitlin2014_surface"},
+    "mars_surface_mSv_per_day": {"value": 0.64, "uncertainty": 0.12, "estimate": false, "source_id": "zeitlin2014_surface", "note": "Rover-deck environment near solar maximum. Habitat regolith is extra shielding on top of this reference, not a replacement for it."},
+    "shortest_roundtrip_Sv": {"value": 0.66, "uncertainty": 0.12, "estimate": false, "source_id": "zeitlin2013_cruise", "note": "Published comparison for a short round trip with similar shielding. It does NOT include a 500-day surface stay."},
+    "lunar_surface_mSv_per_day": {"value": 0.9, "estimate": true, "source_id": "game_calibration", "note": "Half-sky planetary shielding on an airless body, solar-max order of magnitude. Not a CRaTER data product. MSL cruise is the measured anchor; this lunar number is an estimate."},
+    "shield_scale_g_cm2": {"value": 50, "estimate": true, "source_id": "game_calibration", "note": "Game transmission = 1 / (1 + extra_g_cm2 / 50). This is NOT HZETRN. GCR does not attenuate as a pure exponential; secondaries matter. Zero extra shielding reproduces the published reference rates."},
+    "storm_shelter_extra_g_cm2": {"value": 20, "estimate": true, "source_id": "game_calibration", "note": "Modest polyethylene/water shelter used as a sleep station on a transfer vehicle. It is additional to MSL-like vehicle shielding already inside the cruise rate."},
+    "buried_habitat_extra_g_cm2": {"value": 200, "estimate": true, "source_id": "game_calibration", "note": "Roughly under a meter of regolith depending on density. Permanent residence wants still more; see the 20 mSv/year design target."},
+    "career_planning_cap_mSv": {"value": 600, "estimate": true, "source_id": "nasa_std_3001", "note": "Conservative planning screen. NASA-STD-3001 uses age/sex-specific REID, not this single number."},
+    "settlement_design_target_mSv_per_year": {"value": 20, "estimate": true, "source_id": "icrp103", "note": "Analogy to ICRP occupational management, applied as a settlement design target. Not a NASA flight limit."},
+    "acute_injury_mSv": {"value": 1000, "estimate": true, "source_id": "game_calibration", "note": "Deterministic effects become a medical concern around ~1 Gy acute whole-body. Dose equivalent is not the same quantity; this threshold is a game medical screen."},
+    "acute_severe_mSv": {"value": 2000, "estimate": true, "source_id": "game_calibration"},
+    "game_spe_probability_mars_mission": {"value": 0.1, "estimate": true, "source_id": "game_calibration", "note": "DRAMATIC COMPRESSION for play. MSL's cruise SEPs were a few percent of total dose during one solar-max transit. This is not a forecast of SPE frequency."},
+    "game_spe_probability_lunar_sortie": {"value": 0.04, "estimate": true, "source_id": "game_calibration"}
+  },
+  "bodies": {
+    "moon": {
+      "gravity_m_s2": {"value": 1.62, "estimate": false, "source_id": "nssdc_moon_factsheet"},
+      "mean_distance_m": {"value": 384400000, "estimate": false, "source_id": "nssdc_moon_factsheet"},
+      "synodic_month_days": {"value": 29.53, "estimate": false, "source_id": "nssdc_moon_factsheet"},
+      "night_days_nonpolar": {"value": 14.75, "estimate": true, "source_id": "nssdc_moon_factsheet", "note": "Half a synodic month. Polar sites are not in this night. Peaks of long illumination are not truly eternal; the game uses an estimate."},
+      "polar_illumination_fraction": {"value": 0.8, "estimate": true, "source_id": "game_calibration", "note": "Some south-pole ridge sites have high but not 100% illumination. 0.8 is a planning estimate, not an LRO product for a named peak."},
+      "water_ice_wt_fraction_cabeus": {"value": 0.056, "uncertainty": 0.029, "estimate": false, "source_id": "colaprete2010", "note": "One crater's ejecta, not a global average and not a proven minable reserve."}
+    },
+    "mars": {
+      "gravity_m_s2": {"value": 3.71, "estimate": false, "source_id": "nssdc_mars_factsheet"},
+      "surface_pressure_mb": {"value": 6.36, "estimate": false, "source_id": "nssdc_mars_factsheet", "note": "Mean. Varies roughly from ~4 to ~9 mb with season and weather."},
+      "mean_temperature_K": {"value": 210, "estimate": false, "source_id": "nssdc_mars_factsheet"},
+      "semi_major_axis_au": {"value": 1.5237, "estimate": false, "source_id": "nssdc_mars_factsheet"},
+      "sidereal_year_days": {"value": 686.98, "estimate": false, "source_id": "nssdc_mars_factsheet"},
+      "sol_hours": {"value": 24.6597, "estimate": false, "source_id": "nssdc_mars_factsheet"},
+      "atmosphere_volume_fraction": {
+        "CO2": {"value": 0.9532, "estimate": false, "source_id": "nssdc_mars_factsheet"},
+        "N2": {"value": 0.027, "estimate": false, "source_id": "nssdc_mars_factsheet"},
+        "Ar": {"value": 0.016, "estimate": false, "source_id": "nssdc_mars_factsheet"},
+        "O2": {"value": 0.0013, "estimate": false, "source_id": "nssdc_mars_factsheet"},
+        "CO": {"value": 0.0008, "estimate": false, "source_id": "nssdc_mars_factsheet"}
+      },
+      "distance_min_m": {"value": 54600000000, "estimate": false, "source_id": "nasa_dra5_2009", "note": "DRA comparison table order: ~58e6 km at the near end; 5.46e10 m used so that one-way light time is ~3 minutes."},
+      "distance_max_m": {"value": 401000000000, "estimate": false, "source_id": "nasa_dra5_2009", "note": "DRA far end ~400e6 km. One-way light time ~22 minutes; two-way ~44 minutes."},
+      "synodic_days": {"value": 779.94, "estimate": false, "source_id": "nasa_dra5_2009", "note": "Earth-Mars synodic period. Opportunities about every 26 months. The 15-year cycle modulates energy; this game slips to the next opportunity but does not model every porkchop."},
+      "window_half_width_days": {"value": 45, "estimate": true, "source_id": "game_calibration", "note": "A practical departure month, not a Lambert-solution window."},
+      "window_reference_date": {"value": "2026-11-15", "estimate": true, "source_id": "game_calibration", "note": "Anchor near the late-2026 Mars departure season. Later windows are this date plus integer synodic periods."},
+      "perchlorate_wt_fraction_phoenix": {"value": 0.005, "estimate": true, "source_id": "hecht2009", "note": "Mid of the ~0.4–0.6 wt% Phoenix WCL result. Not a global mean. Curiosity and later work show perchlorate and oxychlorine compounds are widespread enough that untreated regolith is a bad growth medium."},
+      "dust_storm_solar_fraction": {"value": 0.15, "estimate": true, "source_id": "game_calibration", "note": "Global storms can cut surface sunlight to a small fraction of clear-sky. 0.15 is a planning estimate, not a named storm's optical depth."},
+      "heritage_landed_mass_t": {"value": 1.0, "estimate": false, "source_id": "braun_manning_2007", "note": "Order of one tonne. Curiosity/Perseverance-class. Not a human lander."},
+      "moxie_total_o2_kg": {"value": 0.122, "estimate": false, "source_id": "nasa_moxie_2023"},
+      "moxie_peak_g_per_hour": {"value": 12, "estimate": false, "source_id": "nasa_moxie_2023"},
+      "isru_pilot_o2_kg_per_year": {"value": 1000, "estimate": true, "source_id": "game_calibration", "note": "Game gate for a pilot plant: ~0.11 kg/h if run all year, about 10× MOXIE's peak and continuous. Still not a full ascent load."},
+      "ascent_o2_store_kg": {"value": 23000, "estimate": true, "source_id": "game_calibration", "note": "Order-of-magnitude oxidizer load for a SMALL ascent of people off Mars. DRA-class vehicles can be larger. Not a propulsion design."}
+    },
+    "earth": {
+      "leo_altitude_km": {"value": 400, "estimate": true, "source_id": "game_calibration"}
+    }
+  },
+  "delta_v_m_s": {
+    "surface_to_leo_with_losses": {"value": 9400, "estimate": true, "source_id": "tsiolkovsky", "note": "Planning value: ~7.8 km/s orbital plus gravity and drag losses. Actual losses depend on the vehicle."},
+    "leo_to_tli": {"value": 3150, "estimate": true, "source_id": "game_calibration", "note": "LEO to trans-lunar injection, Apollo-class planning value ~3.1–3.2 km/s."},
+    "tli_to_llo": {"value": 900, "estimate": true, "source_id": "game_calibration"},
+    "llo_to_surface": {"value": 1900, "estimate": true, "source_id": "game_calibration", "note": "No lunar atmosphere. The propellant is not optional."},
+    "leo_to_tmi_min_energy": {"value": 3600, "estimate": true, "source_id": "game_calibration", "note": "Minimum-energy trans-Mars injection from low Earth orbit, planning value. Fast crew trajectories cost more. DRA's published maneuver table is for specific assembly orbits and NTR vehicles and is not this number."},
+    "mars_terminal_descent": {"value": 600, "estimate": true, "source_id": "game_calibration", "note": "Propulsive terminal descent after aerocapture/entry. Highly architecture-dependent."},
+    "mars_aeroshell_mass_factor": {"value": 1.4, "estimate": true, "source_id": "game_calibration"},
+    "mars_edl_systems_overhead": {"value": 2.0, "estimate": true, "source_id": "braun_manning_2007", "note": "Extra factor so a naive rocket equation does not pretend a rover's landed mass is the whole entry system."},
+    "dra_moon_leo_to_surface_and_back": {"value": 9500, "estimate": false, "source_id": "nasa_dra5_2009"},
+    "dra_mars_leo_to_surface_and_back_low": {"value": 12000, "estimate": false, "source_id": "nasa_dra5_2009"},
+    "dra_mars_leo_to_surface_and_back_high": {"value": 14000, "estimate": false, "source_id": "nasa_dra5_2009"},
+    "dra_campaign_imleo_t_low": {"value": 800, "estimate": false, "source_id": "nasa_dra5_2009"},
+    "dra_campaign_imleo_t_high": {"value": 1200, "estimate": false, "source_id": "nasa_dra5_2009"}
+  },
+  "propulsion": {
+    "hydrolox_vacuum_isp_s": {"value": 450, "estimate": true, "source_id": "game_calibration", "note": "Round vacuum hydrolox planning value. RL10-class engines are in this neighborhood and some variants are higher (~465 s)."},
+    "storable_isp_s": {"value": 320, "estimate": true, "source_id": "game_calibration", "note": "Storable bipropellant vacuum planning value for lunar descent/ascent."},
+    "ntr_isp_s": {"value": 905, "estimate": false, "source_id": "borowski_ntr_2012", "note": "Midpoint of the DRA 5.0 ~900–910 s NERVA-derived figure. Not a flight-proven stage."},
+    "ntr_imleo_multiplier": {"value": 0.62, "estimate": true, "source_id": "borowski_ntr_2012", "note": "Game factor so an NTR campaign sits in the DRA 800–1200 t band while the chemical campaign sits above it. The rocket equation itself is exact; this campaign multiplier is the estimate."}
+  },
+  "campaign": {
+    "mars_preposition_imleo_t": {"value": 280, "estimate": true, "source_id": "nasa_dra5_2009", "note": "Fixed cargo-preposition share of IMLEO for a 6-person-class campaign. Estimate anchored to DRA's hundreds-of-tonnes campaign, not a vehicle CAD model."},
+    "mars_stack_imleo_t_per_crew_chemical": {"value": 180, "estimate": true, "source_id": "nasa_dra5_2009"},
+    "lunar_sortie_imleo_t": {"value": 65, "estimate": true, "source_id": "game_calibration", "note": "Two-crew short lunar sortie, full stack in LEO, including return. Estimate."},
+    "reference_crew_mars": {"value": 6, "estimate": false, "source_id": "nasa_dra5_2009"},
+    "reference_outbound_days": {"value": 180, "estimate": true, "source_id": "nasa_dra5_2009", "note": "Inside the DRA ~180–210 day transit band. One worked example in the literature is 174 days out and 201 back."},
+    "reference_surface_days": {"value": 500, "estimate": true, "source_id": "nasa_dra5_2009", "note": "Inside the DRA long-stay band (~500–540 days). A worked example is 539 days."},
+    "reference_return_days": {"value": 180, "estimate": true, "source_id": "nasa_dra5_2009"}
+  },
+  "reference_vehicles": {
+    "note": "Education only. The game buys vehicle classes, not a branded manifest.",
+    "falcon_heavy_leo_kg_expendable": {"value": 63800, "estimate": false, "source_id": "spacex_falcon_heavy"},
+    "falcon_heavy_gto_kg": {"value": 26700, "estimate": false, "source_id": "spacex_falcon_heavy"},
+    "falcon_heavy_mars_kg": {"value": 16800, "estimate": false, "source_id": "spacex_falcon_heavy"},
+    "sls_block1_leo_t": {"value": 95, "estimate": true, "source_id": "nasa_sls", "note": "NASA class figure, rounded."},
+    "sls_block1_tli_t": {"value": 27, "estimate": true, "source_id": "nasa_sls"}
+  },
+  "analogs": {
+    "biosphere2_o2_start_percent": {"value": 20.9, "estimate": false, "source_id": "severinghaus1994_biosphere2"},
+    "biosphere2_o2_low_percent": {"value": 14.5, "estimate": true, "source_id": "severinghaus1994_biosphere2", "note": "Commonly cited low near 14.2–14.5%. The paper is the source of the decline; the single endpoint is quoted as an estimate of the reported low."},
+    "mars500_days": {"value": 520, "estimate": false, "source_id": "esa_mars500"}
+  },
+  "win": {
+    "independence_years": {"value": 5, "estimate": false, "source_id": "game_calibration", "note": "Design rule of this game, chosen so a stockpile cannot fake a civilization. Five years of local surplus."},
+    "food_local_fraction": {"value": 0.9, "estimate": false, "source_id": "game_calibration", "note": "Design rule: ≥90% of dry edible calories grown on site."},
+    "o2_margin": {"value": 1.2, "estimate": false, "source_id": "game_calibration"},
+    "power_margin_worst_case": {"value": 1.2, "estimate": false, "source_id": "game_calibration"},
+    "industrial_closure": {"value": 0.8, "estimate": false, "source_id": "game_calibration", "note": "Fraction of critical spare-part mass fabricable locally. Design rule."},
+    "population_with_archive": {"value": 100, "estimate": true, "source_id": "smith2014", "note": "NOT a genetically viable population by itself. Requires the archive and births below."},
+    "births_with_archive": {"value": 10, "estimate": false, "source_id": "game_calibration"},
+    "genome_archive_donors": {"value": 10000, "estimate": true, "source_id": "smith2014", "note": "Game-scale germplasm/genome archive. Smith's no-bank census is far larger; the archive is what makes a small settlement a seed rather than a genetic bottleneck pretending to be a species backup."},
+    "population_without_archive": {"value": 14000, "estimate": true, "source_id": "smith2014", "note": "Lower order of Smith's published census range. Still an estimate relative to his scenario assumptions (world ship, not Mars)."},
+    "water_recovery_min": {"value": 0.98, "estimate": false, "source_id": "nasa_iss_water_2023"}
+  }
+}
