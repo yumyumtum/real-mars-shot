@@ -74,10 +74,22 @@ def blank_site() -> dict[str, Any]:
         "extinct": False,
         "fatalities": 0,
         "inhabited_days": 0,
+        "inhabited_years": 0.0,
         "biology_closed_months": 0,
+        "biology_years": 0.0,
         "machine_tended_months": 0,
+        "machine_replicator_months": 0,
+        "machine_years": 0.0,
+        "tended_years": 0.0,
+        "epoch_paths": {},
         "organisms": {},
         "life_archive_accessions": 0,
+        "ore_reserve_t": 0.0,
+        "isru_metal_t_year": 0.0,
+        "heat_reject_kwe": 0.0,
+        "repair_fraction": 0.0,
+        "replication_fidelity": 0.0,
+        "replication_improvement": False,
         "stores": {"food_kg": 0.0, "water_kg": 0.0, "o2_kg": 0.0},
         "farms_m2": 0.0,
         "solar_kwe_clear": 0.0,
@@ -145,7 +157,7 @@ def new_state(
         }
     now = datetime.now(timezone.utc).isoformat()
     state: dict[str, Any] = {
-        "version": 1,
+        "version": 2,
         "game": "realmarsshot",
         "language": language,
         "user_id": user_id,
@@ -159,11 +171,8 @@ def new_state(
         "outcome": None,
         "outcome_reason": None,
         "outcome_site": None,
-        "footholds": {
-            "human": _blank_foothold("foothold_500"),
-            "biology": _blank_foothold("foothold_biology"),
-            "machine": _blank_foothold("foothold_machine"),
-        },
+        "footholds": _blank_footholds(),
+        "earth_program_ended": False,
         "treasury_busd": 1.5,
         "annual_budget_busd": 4.0 if hard else 6.0,
         "political_capital": 48 if hard else 55,
@@ -258,11 +267,119 @@ def save_game(state: dict[str, Any], *, backup: bool = True) -> dict[str, Any]:
     return {"success": True, "save_path": str(path), "backup_path": str(backup_path) if backup_path else None}
 
 
+def _blank_footholds() -> dict[str, Any]:
+    return {
+        "human": _blank_foothold("foothold_500"),
+        "human_century": _blank_foothold("foothold_human_century"),
+        "biology": _blank_foothold("foothold_biology"),
+        "machine": _blank_foothold("foothold_machine"),
+    }
+
+
+_LEGACY_FOOTHOLDS = (
+    ("human", "foothold_500"),
+    ("biology", "foothold_biology"),
+    ("machine", "foothold_machine"),
+)
+
+
+def _ensure_site(site: dict[str, Any]) -> None:
+    fresh = blank_site()
+    for key, value in fresh.items():
+        if key not in site:
+            site[key] = json.loads(json.dumps(value))
+        elif key == "stores" and isinstance(site.get("stores"), dict):
+            for store_key, store_value in fresh["stores"].items():
+                site["stores"].setdefault(store_key, store_value)
+        elif key == "organisms" and not isinstance(site.get("organisms"), dict):
+            site["organisms"] = {}
+        elif key == "epoch_paths" and not isinstance(site.get("epoch_paths"), dict):
+            site["epoch_paths"] = {}
+
+
+def migrate(data: dict[str, Any]) -> dict[str, Any]:
+    """Bring a version-1 save up to the tiered clocks. Idempotent.
+
+    An announcement that already happened stays announced and does not fire again.
+    A version-1 biology or machine foothold was a shorter clock. Keeping it achieved
+    is the migration, not a new deep-time win. Deep-time years are not granted.
+    """
+    if not isinstance(data, dict):
+        return data
+    previous = int(data.get("version") or 1)
+    footholds = data.get("footholds")
+    if not isinstance(footholds, dict):
+        footholds = {}
+        data["footholds"] = footholds
+    for key, reason in _LEGACY_FOOTHOLDS:
+        row = footholds.get(key)
+        if not isinstance(row, dict) or "achieved" not in row:
+            footholds[key] = _blank_foothold(reason)
+            row = footholds[key]
+        row.setdefault("reason", reason)
+        row.setdefault("announced", bool(row.get("achieved")))
+        row.setdefault("site", None)
+        row.setdefault("progress", 0)
+        row["just_announced"] = False
+    for key, reason in _blank_footholds().items():
+        row = footholds.get(key)
+        if not isinstance(row, dict) or "achieved" not in row:
+            footholds[key] = _blank_foothold(reason["reason"])
+        else:
+            row.setdefault("reason", reason["reason"])
+            row.setdefault("announced", bool(row.get("achieved")))
+            row.setdefault("site", None)
+            row.setdefault("progress", 0)
+            row["just_announced"] = False
+    sites = data.get("sites")
+    if not isinstance(sites, dict):
+        sites = {}
+        data["sites"] = sites
+    for name in ("moon", "mars", "freespace"):
+        site = sites.get(name)
+        if not isinstance(site, dict):
+            sites[name] = blank_site()
+            continue
+        if "biology_years" not in site:
+            months = float(site.get("biology_closed_months") or 0)
+            site["biology_years"] = round(months * 30.0 / 365.25, 4)
+        if "inhabited_years" not in site:
+            site["inhabited_years"] = round(float(site.get("inhabited_days") or 0) / 365.25, 4)
+        if "machine_years" not in site:
+            site["machine_years"] = 0.0
+        if "tended_years" not in site:
+            tended_months = float(site.get("machine_tended_months") or 0)
+            site["tended_years"] = round(tended_months * 30.0 / 365.25, 4)
+        if "machine_replicator_months" not in site:
+            site["machine_replicator_months"] = 0
+        _ensure_site(site)
+    if previous < 2:
+        from rms.data import V
+
+        biology = footholds.get("biology") or {}
+        if biology.get("achieved"):
+            site_name = biology.get("site") if biology.get("site") in sites else "mars"
+            site = sites[site_name]
+            site["biology_years"] = max(float(site.get("biology_years") or 0), float(V("win", "foothold_biology_years")))
+            biology["progress"] = int(site["biology_years"])
+            biology["site"] = site_name
+        machine = footholds.get("machine") or {}
+        if machine.get("achieved"):
+            site_name = machine.get("site") if machine.get("site") in sites else "mars"
+            site = sites[site_name]
+            site["machine_years"] = max(float(site.get("machine_years") or 0), float(V("win", "foothold_machine_years")))
+            machine["progress"] = int(site["machine_years"])
+            machine["site"] = site_name
+    data["version"] = 2
+    data.setdefault("earth_program_ended", False)
+    return data
+
+
 def load_game(user_id: str) -> dict[str, Any]:
     path = save_path(user_id)
     if not path.exists():
         return {"exists": False, "save_path": str(path)}
-    data = json.loads(path.read_text(encoding="utf-8"))
+    data = migrate(json.loads(path.read_text(encoding="utf-8")))
     return {"exists": True, "save_path": str(path), "data": data}
 
 

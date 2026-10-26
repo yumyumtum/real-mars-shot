@@ -6,7 +6,7 @@ from typing import Any
 
 from rms.data import V
 from rms.physics import annual_habitat_dose_mSv
-from rms.settlement import evaluate_month
+from rms.settlement import biology_month, evaluate_month, reproducing_level, tended_life
 
 
 def _item(item_id: str, ok: bool, current: Any, target: Any, estimate: bool, source_id: str, zh: str, en: str) -> dict[str, Any]:
@@ -165,28 +165,51 @@ def earth_alive_for_foothold(state: dict[str, Any]) -> bool:
     return not collapsed
 
 
+# Intermediate tiers. Deep time is not in this list: it ends the campaign.
 _PATHS = (
-    ("human", "foothold_500", "inhabited_days", "foothold_days"),
-    ("biology", "foothold_biology", "biology_closed_months", "foothold_biology_months"),
-    ("machine", "foothold_machine", "machine_tended_months", "foothold_machine_months"),
+    ("human", "foothold_500", "inhabited_days", "foothold_days", "days", False),
+    ("human_century", "foothold_human_century", "inhabited_years", "foothold_human_years", "years", False),
+    ("biology", "foothold_biology", "biology_years", "foothold_biology_years", "years", False),
+    ("machine", "foothold_machine", "machine_years", "foothold_machine_years", "years", False),
 )
 
+# Status order groups each path's short tier with its deep clock.
+_ROWS = (
+    _PATHS[0],
+    _PATHS[1],
+    _PATHS[2],
+    ("biology_deep", "seed_of_life:biology", "biology_years", "foothold_biology_deep_years", "years", True),
+    _PATHS[3],
+    ("machine_deep", "seed_of_life:machine", "tended_years", "foothold_machine_deep_years", "years", True),
+)
+
+
+def _shown(value: float, unit: str) -> int:
+    if unit == "days":
+        return int(value)
+    return int(float(value) + 1e-9)
+
+
 def foothold_progress(state: dict[str, Any]) -> list[dict[str, Any]]:
-    """Best site for each path. Mars wins a tie, because 500 days is a Mars stay."""
+    """Best site for each tier. Mars wins a tie."""
     rows = []
     block = state.get("footholds") or {}
-    for key, reason, field, target_key in _PATHS:
+    for key, reason, field, target_key, unit, terminal in _ROWS:
         target = int(V("win", target_key))
         best_site = "mars"
-        best_value = int(state["sites"]["mars"].get(field, 0))
+        best_value = float(state["sites"]["mars"].get(field, 0) or 0)
         for site_name in ("moon", "freespace"):
-            value = int(state["sites"][site_name].get(field, 0))
+            value = float(state["sites"][site_name].get(field, 0) or 0)
             if value > best_value:
                 best_site = site_name
                 best_value = value
         record = block.get(key) or {}
-        site_name = record["site"] if record.get("achieved") and record.get("site") else best_site
-        current = int(state["sites"][site_name].get(field, 0))
+        if record.get("achieved") and record.get("site") in state["sites"]:
+            site_name = record["site"]
+        else:
+            site_name = best_site
+        current = _shown(float(state["sites"][site_name].get(field, 0) or 0), unit)
+        achieved = bool(record.get("achieved")) or (terminal and current >= target)
         rows.append({
             "path": key,
             "reason": reason,
@@ -194,26 +217,27 @@ def foothold_progress(state: dict[str, Any]) -> list[dict[str, Any]]:
             "progress": int(record.get("progress") or current),
             "current": current,
             "target": target,
-            "achieved": bool(record.get("achieved")),
-            "unit": "days" if key == "human" else "months",
+            "achieved": achieved,
+            "unit": unit,
+            "terminal": terminal,
         })
     return rows
 
 
 def consider_footholds(state: dict[str, Any]) -> list[dict[str, Any]]:
-    """Record each first-tier win once. Does not set state['outcome']."""
+    """Record each intermediate tier once. Does not set state['outcome']."""
     if not earth_alive_for_foothold(state):
         return []
     block = state.setdefault("footholds", {})
     announced = []
-    for key, reason, field, target_key in _PATHS:
+    for key, reason, field, target_key, _unit, _terminal in _PATHS:
         row = block.setdefault(key, {"achieved": False, "announced": False, "just_announced": False, "reason": reason, "site": None, "progress": 0})
         if row.get("achieved"):
             continue
         target = float(V("win", target_key))
         best: tuple[str, float] | None = None
         for site_name in ("mars", "moon", "freespace"):
-            progress = float(state["sites"][site_name].get(field, 0))
+            progress = float(state["sites"][site_name].get(field, 0) or 0)
             if progress + 1e-9 >= target and (best is None or progress > best[1]):
                 best = (site_name, progress)
         if best is None:
@@ -224,10 +248,45 @@ def consider_footholds(state: dict[str, Any]) -> list[dict[str, Any]]:
             "just_announced": True,
             "reason": reason,
             "site": best[0],
-            "progress": int(best[1]),
+            "progress": int(round(best[1])),
         })
         announced.append(dict(row))
     return announced
+
+
+def living_independent_seed(state: dict[str, Any]) -> bool:
+    """An epoch has already started and something on that world is still there."""
+    for site in state["sites"].values():
+        if site.get("extinct"):
+            continue
+        paths = site.get("epoch_paths") or {}
+        if not any(paths.values()):
+            continue
+        if int(site.get("population", 0) or 0) > 0 or int(site.get("robots", 0) or 0) > 0 or reproducing_level(site) > 0:
+            return True
+        if float(site.get("biology_years") or 0) > 0 or float(site.get("machine_years") or 0) > 0 or float(site.get("tended_years") or 0) > 0:
+            return True
+    return False
+
+
+def consider_seed(state: dict[str, Any]) -> dict[str, Any] | None:
+    """Deep time on an independent world. Earth does not have to still be funding it.
+
+    Mars is checked before the Moon and free space. On one world, a living
+    lineage is reported before a machine-tended one if both have arrived.
+    """
+    deep_bio = float(V("win", "foothold_biology_deep_years"))
+    deep_machine = float(V("win", "foothold_machine_deep_years"))
+    for site_name in ("mars", "moon", "freespace"):
+        site = state["sites"][site_name]
+        if site.get("extinct"):
+            continue
+        paths = site.get("epoch_paths") or {}
+        if paths.get("biology") and float(site.get("biology_years") or 0) + 1e-9 >= deep_bio and biology_month(site_name, site)["ok"]:
+            return {"path": "biology", "site": site_name, "years": float(site["biology_years"])}
+        if paths.get("machine") and float(site.get("tended_years") or 0) + 1e-9 >= deep_machine and tended_life(site_name, site)["ok"]:
+            return {"path": "machine", "site": site_name, "years": float(site["tended_years"])}
+    return None
 
 
 def any_ember(state: dict[str, Any]) -> dict[str, Any] | None:

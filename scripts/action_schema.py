@@ -21,6 +21,7 @@ SCHEMA = {
         {"type": "biology", "fields": ["organism", "site", "confirm_reckless"], "sites": ["earth_lab", "earth_simulant", "earth_open", "moon", "mars"]},
         {"type": "independence", "fields": ["site", "confirm_reckless"]},
         {"type": "mission", "fields": ["profile", "destination", "crew", "payload_t", "confirm_reckless"]},
+        {"type": "epoch", "fields": ["site", "path", "scale"], "sites": ["moon", "mars", "freespace"], "paths": ["human", "biology", "machine"], "scales": ["decade", "century", "millennium"]},
     ],
     "rule": "Impossible actions do not advance time. Reckless actions return needs_confirmation and do not mutate until confirm_reckless is true.",
 }

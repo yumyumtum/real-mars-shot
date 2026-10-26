@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "game": "realmarsshot",
   "language": "zh",
   "user_id": "sample",
@@ -316,7 +316,19 @@
       "biology_closed_months": 0,
       "machine_tended_months": 0,
       "organisms": {},
-      "life_archive_accessions": 0
+      "life_archive_accessions": 0,
+      "biology_years": 0.0,
+      "inhabited_years": 0.0,
+      "machine_years": 0.0,
+      "tended_years": 0.0,
+      "machine_replicator_months": 0,
+      "epoch_paths": {},
+      "ore_reserve_t": 0.0,
+      "isru_metal_t_year": 0.0,
+      "heat_reject_kwe": 0.0,
+      "repair_fraction": 0.0,
+      "replication_fidelity": 0.0,
+      "replication_improvement": false
     },
     "mars": {
       "population": 0,
@@ -364,7 +376,19 @@
       "biology_closed_months": 0,
       "machine_tended_months": 0,
       "organisms": {},
-      "life_archive_accessions": 0
+      "life_archive_accessions": 0,
+      "biology_years": 0.0,
+      "inhabited_years": 0.0,
+      "machine_years": 0.0,
+      "tended_years": 0.0,
+      "machine_replicator_months": 0,
+      "epoch_paths": {},
+      "ore_reserve_t": 0.0,
+      "isru_metal_t_year": 0.0,
+      "heat_reject_kwe": 0.0,
+      "repair_fraction": 0.0,
+      "replication_fidelity": 0.0,
+      "replication_improvement": false
     },
     "freespace": {
       "population": 0,
@@ -412,7 +436,19 @@
       "biology_closed_months": 0,
       "machine_tended_months": 0,
       "organisms": {},
-      "life_archive_accessions": 0
+      "life_archive_accessions": 0,
+      "biology_years": 0.0,
+      "inhabited_years": 0.0,
+      "machine_years": 0.0,
+      "tended_years": 0.0,
+      "machine_replicator_months": 0,
+      "epoch_paths": {},
+      "ore_reserve_t": 0.0,
+      "isru_metal_t_year": 0.0,
+      "heat_reject_kwe": 0.0,
+      "repair_fraction": 0.0,
+      "replication_fidelity": 0.0,
+      "replication_improvement": false
     }
   },
   "facilities": {
@@ -531,6 +567,15 @@
       "reason": "foothold_machine",
       "site": null,
       "progress": 0
+    },
+    "human_century": {
+      "achieved": false,
+      "announced": false,
+      "just_announced": false,
+      "reason": "foothold_human_century",
+      "site": null,
+      "progress": 0
     }
-  }
+  },
+  "earth_program_ended": false
 }

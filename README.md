@@ -33,25 +33,30 @@ Humans are fragile. Lower organisms travel more easily, and surviving an exposur
 
 ## 怎么赢，怎么输 / Win and loss
 
-先有三种立足，每一种都在第一次达成时宣布一次，战役继续。宣布时地球必须还活着。最终的赢仍是火种。
+先有四档立足。每一档在第一次达成时宣布一次，战役继续。宣布时地球必须还活着。终局有两个。
 
-1. **人。** 至少两人在月球、火星或深空连续活过 500 天（大约一次合式火星停留）。本地干食至少四分之一，本地氧气至少一半，损耗的水至少一半来自当地。只靠库存不算。
-2. **生物。** 能繁殖的地球物种在温室或覆土生态位里、不靠地球补给，延续 36 个月。蓝细菌、地衣、苔藓、极端微生物、作物都可以。缓步动物挨过暴露不算。开放的火星地表不算：气压约 6 毫巴，没有稳定液态水。封闭培养仍要付一笔行星保护的政治代价。
-3. **机器照护的生命。** 机器人维持电力、备件、活着的生物和一份档案至少 24 个月。没有生命的机器不算。
+1. **人，500 天。** 至少两人在月球、火星或深空连续活过大约一次合式火星停留。本地干食至少四分之一，本地氧气至少一半，损耗的水至少一半来自当地。只靠库存不算。
+2. **人，约 100 年。** 五百天的条件还在，当地至少八人，而且已经有过一次地外出生。这是几代人（估计），不是新物种。
+3. **生物，约 10 年。** 能繁殖的地球物种在温室或覆土生态位里、不靠地球补给，站稳十年。这是「建立」（估计；生物圈二号大约两年就氧气失控），不是物种形成。缓步动物挨过暴露不算。开放的火星地表不算。
+4. **机器，约 50 年。** 机器自己采矿、供电、散热、替换坏掉的单位并复制自己。它们不需要氧气。50 年是估计，想法来自 1980 年 NASA 的自复制月球工厂研究（1982 年出版），那份研究没有建成工厂。没有生命的机器可以赢得这一档。
 
-火种：十条同时成立。连续五年本地盈余（库存不算）、水回收至少 98% 且损耗由本地水覆盖、氧气与功率有裕度、九成以上干食本地生产、栖息地年剂量达标，以及要么约一万四千名居民，要么一百名居民、十次地外出生、再加一万名供体的种质档案。一百个人本身不是物种备份。火种成立以后，即使地球同时垮掉，也算赢。
+火种仍是人类文明的终局：十条同时成立。连续五年本地盈余（库存不算）、水回收至少 98% 且损耗由本地水覆盖、氧气与功率有裕度、九成以上干食本地生产、栖息地年剂量达标，以及要么约一万四千名居民，要么一百名居民、十次地外出生、再加一万名供体的种质档案。一百个人本身不是物种备份。火种成立以后，即使地球同时垮掉，也算赢。同一检查里若生命之种也成立，记下的是火种。
 
-输：确认后在地球上无约束释放试验生物；地球稳定度归零；计划在长期赤字、政治资本和舆论同时崩掉时被取消；孤注一掷的载人失败把国库、政治和乘员一起打光，地外又没有机器人；或者试炼中的居民死去而地球已经救不回来。这些都会挡住尚未宣布的立足。
+生命之种是另一条终局：生物自己，或被机器照看的生物，在另一个世界上走到大约一万年。一万年是估计。它不是实验室里细菌的一万代（那是几年，不是一万年），也不是一张「到了就变成新物种」的时刻表。月回合走不到那里。系统能自持以后，可以用纪元快进十年、百年或千年，每一步掷一次风险。地球的计划可能在纪元里结束。种子已经独立就继续；还没独立，地球垮了就是输。
+
+输：确认后在地球上无约束释放试验生物；地球稳定度归零而地外还没有独立种子；计划在长期赤字、政治资本和舆论同时崩掉时被取消；孤注一掷的载人失败把国库、政治和乘员一起打光，地外又没有机器人；或者试炼中的居民死去而地球已经救不回来。这些都会挡住尚未宣布的立足。
 
 单次发射失败、模拟舱撤离、预算削减、错过窗口、作物病害，都还能继续。模拟舱失败是一次教训，不是一座坟墓。
 
-Three footholds are announced once each, and the campaign continues. Earth has to still be alive at the announcement. The ember is still the final win.
+Four footholds are announced once each, and the campaign continues. Earth has to be alive at the announcement. There are two endings.
 
-Crew: at least two people alive for 500 days, with a real local share of food, oxygen, and water. A stockpile alone does not count. Life: a reproducing Earth species persists 36 months in a greenhouse or buried niche with no Earth resupply. A tardigrade exposure does not count, and neither does the open Martian surface. Machines: robots keep power, spares, living organisms, and an archive going for 24 months. Machines with no life do not win.
+Crew: 500 days with a real local share of food, oxygen, and water, then about 100 years once a child has been born. Life: about 10 years established in a sheltered niche. That is not speciation. A tardigrade exposure does not count, and neither does the open Martian surface. Machines: about 50 years mining, powering, rejecting heat, replacing dead units, and copying themselves. They do not need oxygen. Machines alone can win that tier. They cannot win the ember.
 
-The ember is the ten-item seed: five years of local surplus, 98% water recovery, oxygen and power margin, mostly local food, a habitat dose on target, and either about 14,000 people or 100 residents, ten off-world births, and a 10,000-donor archive. A completed ember wins even if Earth fails in the same check.
+The ember is still the ten-item human civilization. A completed ember wins even if Earth fails in the same check. If the Seed of Life is also true, the recorded win is the ember.
 
-Loss is an uncontained release on Earth, Earth-side collapse, a canceled program, an all-in crewed disaster, or a trial settlement dying while Earth cannot rescue it. Those also block a foothold that has not yet been announced. A failed launch, an evacuated analog, a budget cut, a missed window, or a crop blight does not end the campaign.
+The Seed of Life is the other ending: biology, or biology tended by machines, reaches about 10,000 years on another world. Ten thousand years is an estimate. It is not 10,000 bacterial generations, and it is not a schedule for a new species. Monthly turns cannot get there. An epoch fast-forwards a decade, a century, or a millennium, with one risk roll. Earth's program can end during an epoch. An independent seed continues. A seed that is not yet independent loses if Earth falls.
+
+Loss is an uncontained release on Earth, Earth-side collapse before any seed is independent, a canceled program, an all-in crewed disaster, or a trial settlement dying while Earth cannot rescue it. A failed launch, an evacuated analog, a budget cut, a missed window, or a crop blight does not end the campaign.
 
 ## 🗺️ 路线图 / Roadmap
 
@@ -67,7 +72,7 @@ The phases are the roadmap. They describe the honest next step. They do not lock
 6. **火星货运 Mars cargo.** 重型进入、减速与着陆之后，货物落地并熬过尘季，制氧试点达到吨级每年。
 7. **火星前哨 Mars outpost.** 先有一次往返，再谈留下。
 8. **断供试炼 Independence.** 连续六十个月靠当地盈余活着。库存不走这只时钟。
-9. **火种 Ember.** 十条清单全部为真。地球这边即使同时垮掉，已经成立的火种仍然算赢。
+9. **火种 Ember.** 十条清单全部为真。地球这边即使同时垮掉，已经成立的火种仍然算赢。另一条终局是生命之种：生物，或机器照护的生物，走到大约一万年。那要靠纪元，不是靠一个月一个月地等。
 
 ## 安装 / Install
 
@@ -142,8 +147,11 @@ The first turn spends six months and 0.35 billion USD on the analog habitat, and
 下次火星窗口：2026-10
 若把未来十年全部近地轨道运力都拿去送人（化学推进、六人战役级），地球大约能送出 10 人（估计，约束来自质量与窗口）。
 立足·人 mars: 0/500 天
-立足·生物 mars: 0/36 月
-立足·机器 mars: 0/24 月
+立足·人·百年 mars: 0/100 年
+立足·生物·十年 mars: 0/10 年
+立足·生物·演化 mars: 0/10000 年
+立足·机器·五十年 mars: 0/50 年
+立足·机器·演化 mars: 0/10000 年
 火种清单（moon）：0/10
 ```
 

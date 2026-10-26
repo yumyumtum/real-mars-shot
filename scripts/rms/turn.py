@@ -6,12 +6,13 @@ from typing import Any
 
 from rms.data import V, tech_tree
 from rms.dice import roll_d100
+from rms.epoch import apply_epoch
 from rms.events import apply_event, choose_event
 from rms.missions import PROFILES, apply_success, assign_crew, plan_mission, settle_flown_crew
 from rms.physics import add_months, annual_imleo_t, people_export
 from rms.settlement import apply_month
-from rms.state import ready_crew
-from rms.win import any_ember, consider_footholds
+from rms.state import migrate, ready_crew
+from rms.win import any_ember, consider_footholds, consider_seed, earth_alive_for_foothold, living_independent_seed
 
 FACILITIES: dict[str, dict[str, Any]] = {
     "analog_habitat": {"cost": 0.35, "months": 6, "prereq_tech": []},
@@ -39,6 +40,8 @@ ALIASES = {
     "断供": "independence",
     "计算": "compute",
     "状态": "status",
+    "纪元": "epoch",
+    "快进": "epoch",
 }
 
 
@@ -48,7 +51,9 @@ def resolve(
     *,
     force_roll: int | None = None,
     force_event: str | None = None,
+    force_earth_roll: int | None = None,
 ) -> dict[str, Any]:
+    migrate(state)
     if state.get("outcome"):
         return _result(state, {"ok": False, "ended": True, "reason": state["outcome_reason"]}, mutated=False)
     kind = ALIASES.get(str(action.get("type", "")).strip(), str(action.get("type", "")).strip())
@@ -73,11 +78,15 @@ def resolve(
         "biology": _biology,
         "independence": _independence,
         "mission": _mission,
+        "epoch": _epoch,
     }.get(kind)
     if handler is None:
         return _result(state, {"ok": False, "error": f"unknown action {kind}"}, mutated=False)
 
-    payload = handler(state, action, force_roll=force_roll)
+    if kind == "epoch":
+        payload = _epoch(state, action, force_roll=force_roll, force_earth_roll=force_earth_roll)
+    else:
+        payload = handler(state, action, force_roll=force_roll)
     if not payload.get("mutated"):
         return _result(state, payload, mutated=False)
 
@@ -175,6 +184,16 @@ def _pay(state: dict[str, Any], cost: float) -> bool:
         return False
     state["treasury_busd"] -= cost
     return True
+
+
+def _epoch(
+    state: dict[str, Any],
+    action: dict[str, Any],
+    *,
+    force_roll: int | None,
+    force_earth_roll: int | None = None,
+) -> dict[str, Any]:
+    return apply_epoch(state, action, force_roll=force_roll, force_earth_roll=force_earth_roll)
 
 
 def _wait(state: dict[str, Any], action: dict[str, Any], *, force_roll: int | None) -> dict[str, Any]:
@@ -565,10 +584,23 @@ def _mission(state: dict[str, Any], action: dict[str, Any], *, force_roll: int |
             facts["trial_reset"] = True
         if plan["destination"] in state["sites"]:
             landed = state["sites"][plan["destination"]]
-            if int(landed.get("biology_closed_months", 0)) or int(landed.get("machine_tended_months", 0)):
+            clocks = (
+                int(landed.get("biology_closed_months", 0) or 0),
+                int(landed.get("machine_tended_months", 0) or 0),
+                int(landed.get("machine_replicator_months", 0) or 0),
+                float(landed.get("biology_years", 0) or 0),
+                float(landed.get("machine_years", 0) or 0),
+                float(landed.get("tended_years", 0) or 0),
+            )
+            if any(clocks) or any((landed.get("epoch_paths") or {}).values()):
                 facts["closure_reset"] = True
             landed["biology_closed_months"] = 0
             landed["machine_tended_months"] = 0
+            landed["machine_replicator_months"] = 0
+            landed["biology_years"] = 0.0
+            landed["machine_years"] = 0.0
+            landed["tended_years"] = 0.0
+            landed["epoch_paths"] = {}
     else:
         site_name = plan["destination"] if plan["destination"] in state["sites"] else None
         if site_name:
@@ -620,15 +652,20 @@ def _check_outcome(state: dict[str, Any], hint: str | None) -> None:
         state["outcome"] = "game_over"
         state["outcome_reason"] = "biosafety"
         return
-    if state["earth_stability"] <= 0:
+    independent = living_independent_seed(state)
+    program_collapsed = state["deficit_months"] >= 12 and state["political_capital"] <= 0 and state["public_opinion"] <= 15
+    earth_failed = state["earth_stability"] <= 0 or program_collapsed or hint == "all_in"
+    if independent and earth_failed:
+        state["earth_program_ended"] = True
+    elif state["earth_stability"] <= 0:
         state["outcome"] = "game_over"
         state["outcome_reason"] = "earth_collapse"
         return
-    if state["deficit_months"] >= 12 and state["political_capital"] <= 0 and state["public_opinion"] <= 15:
+    elif program_collapsed:
         state["outcome"] = "game_over"
         state["outcome_reason"] = "program_collapse"
         return
-    if hint == "all_in":
+    elif hint == "all_in":
         state["outcome"] = "game_over"
         state["outcome_reason"] = "all_in_disaster"
         return
@@ -637,7 +674,13 @@ def _check_outcome(state: dict[str, Any], hint: str | None) -> None:
             state["outcome"] = "game_over"
             state["outcome_reason"] = f"offworld_extinction:{site_name}"
             return
-    consider_footholds(state)
+    if earth_alive_for_foothold(state):
+        consider_footholds(state)
+    seed = consider_seed(state)
+    if seed:
+        state["outcome"] = "win"
+        state["outcome_reason"] = f"seed_of_life:{seed['path']}:{seed['site']}"
+        state["outcome_site"] = seed["site"]
 
 
 def _result(state: dict[str, Any], payload: dict[str, Any], *, mutated: bool) -> dict[str, Any]:

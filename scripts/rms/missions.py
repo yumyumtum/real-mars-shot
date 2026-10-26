@@ -179,6 +179,16 @@ PROFILES: dict[str, dict[str, Any]] = {
         "mass_model": "auto",
         "requires_tech": ["local_manufacturing"],
     },
+    "replicator_seed": {
+        "destination": "moon",
+        "crew": 0,
+        "payload_t": 0.9,
+        "cost_busd": 1.6,
+        "base_months": 18,
+        "vehicle": "medium",
+        "mass_model": "auto",
+        "requires_tech": ["self_replicating_factory"],
+    },
     "archive_cache": {
         "destination": "moon",
         "crew": 0,
@@ -524,8 +534,19 @@ def apply_success(state: dict[str, Any], plan: dict[str, Any]) -> list[str]:
         site["farms_m2"] += 800
     elif profile_id == "kilopower_unit":
         site["fission_kwe"] += 10
+        site["heat_reject_kwe"] = float(site.get("heat_reject_kwe", 0.0)) + 10 * float(V("win", "foothold_machine_heat_per_kwe"))
     elif profile_id == "reactor_module":
-        site["fission_kwe"] += 500
+        added = 500
+        site["fission_kwe"] += added
+        site["heat_reject_kwe"] = float(site.get("heat_reject_kwe", 0.0)) + added * float(V("win", "foothold_machine_heat_per_kwe"))
+    elif profile_id == "replicator_seed":
+        site["robots"] += int(V("win", "foothold_machine_robots"))
+        site["isru_metal_t_year"] = max(float(site.get("isru_metal_t_year", 0.0)), float(V("win", "replicator_metal_t_year")))
+        site["ore_reserve_t"] = max(float(site.get("ore_reserve_t", 0.0)), float(V("win", "replicator_ore_reserve_t")))
+        site["heat_reject_kwe"] = max(float(site.get("heat_reject_kwe", 0.0)), float(V("win", "replicator_heat_reject_kwe")))
+        site["repair_fraction"] = max(float(site.get("repair_fraction", 0.0)), float(V("win", "replicator_repair_fraction")))
+        site["replication_fidelity"] = max(float(site.get("replication_fidelity", 0.0)), float(V("win", "replicator_fidelity")))
+        notes.append("replicator_seed_no_procedure")
     elif profile_id == "mars_relay":
         site["relay"] = True
     elif profile_id == "mars_robot":
